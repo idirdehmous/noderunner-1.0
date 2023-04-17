@@ -1,0 +1,58 @@
+@include <head.h>
+@manual
+This task queues the next cycle.
+If it fails, check that the next cycle is "completed". If it has running jobs, these may have to complete first. If there are aborted or failed tasks, and assuming they don't need to be re-run, you can set the cycle to "complete" recursively.
+
+@end
+@include <settings.h>
+
+# check for a ENDDATE (default is "forever")
+ENDDATE=@ENDDATE:3000123123@
+if (( $ENDDATE < $NEXT_RUNDATE )) ; then
+  complete_and_exit "Final date $ENDDATE has been reached!"
+fi 
+
+NYMD=${NEXT_YYYY}${NEXT_MM}${NEXT_DD}
+ecflow_client --alter=change variable YMD $NYMD /@SUITE@/cycle/@NEXT_RUN@
+ecflow_client --alter=change defstatus queued /@SUITE@/cycle/@NEXT_RUN@
+ecflow_client --requeue /@SUITE@/cycle/@NEXT_RUN@
+ecflow_client --alter=change label LAST_QUEUED  "$NEXT_RUNDATE" /@SUITE@
+ecflow_client --alter=change variable LAST_QUEUED  "$NEXT_RUNDATE" /@SUITE@
+ecflow_client --alter=change label RUNDATE "$NEXT_RUNDATE" /@SUITE@/cycle/@NEXT_RUN@
+
+if [[ @REALTIME@ == "yes" ]] ; then
+  trigger_time=$(ecflow_client --get_state /@SUITE@/cycle/@NEXT_RUN@/wait/wait_time 2>/dev/null \
+               | grep "^ *time" | awk '{print $2}' | sed s/:// ) 
+  # this fails if there is no wait_trigger task (intermediate cycle), so check!
+  if [[ $trigger_time == "" ]] ; then
+    echo "No time trigger in next cycle."
+  else
+    trigger_hh=`echo $trigger_time | cut -c 1-2`
+#    trigger_mm=`echo $trigger_time | cut -c 3-4`
+
+  # find the date of the next run (which may be different from NYMD,
+  #        because e.g. a 21h cycle may run after midnight
+    if (( 10#$trigger_hh >= 10#$NEXT_RR )) ; then
+      trigger_date=$NYMD
+    else
+      trigger_date=`date -u -d "$NYDM +1 day" +%Y%m%d`
+    fi
+  
+    echo "Trigger time: ${trigger_date}${trigger_time}"
+    now=`date -u +"%Y%m%d%H%M"`
+    echo "Current time: $now"
+    if (( $now >= ${trigger_date}${trigger_time} )) ; then
+      echo "Trigger time has passed. Setting wait_time to complete."
+      ecflow_client --free-dep=time /@SUITE@/cycle/@NEXT_RUN@/wait/wait_time
+    fi
+  fi
+fi
+# NOTE: requeue also resets the RUNDATE label, so we write it afterwards.
+# We also do that in the init_forecast task itself, but then we would only see
+# the date once the job has started, not when it is still queued.
+# On the other hand, if you manually re-queue a cycle, the date label will be erased
+# so it is best to *also* reset the label in init_forecast.
+# Labels are only for information, anyway. They are *never* used in the suite.
+
+@include <tail.h>
+

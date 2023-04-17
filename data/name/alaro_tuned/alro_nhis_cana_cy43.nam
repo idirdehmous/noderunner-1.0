@@ -1,0 +1,571 @@
+&NAMGWDIAG
+/
+&NAMIAU
+/
+&NAMVDF
+/
+&NAMDIM_TRAJ
+/
+&NAMTRANS0
+/
+&NACIETEO
+/
+&NACOBS
+ORODIF=10000.,  ! Max difference allowed between SYNOP and model heights 
+OROLIM=10000.,  ! Max observation altitude for a SYNOP
+/
+&NACTAN
+/
+&NACTEX
+  LAECDS=.F.,
+  LAECHK=.T.,   ! Spacial quality control 
+  LAEH2M=.T.,   ! H2m analysis  
+  LAEHUM=.F.,   ! Rh upper-air analysis 
+  LAEICS=.T.,   ! Soil moisture and soil temperature analysis 
+  LAEINC=.F.,    
+  LAEOMF=.F.,   !Compute the departures 
+  LAEOMN=.F.,   
+  LAEPDS=.F.,   ! Surface  pressure analysis 
+  LAERFO=.T.,   ! Update the ODB 
+  LAESNM=.F.,   ! Snow analysis 
+  LAESST=.F.,   ! SST analysis 
+  LAESTA=.F.,   ! Saving of the analysis error statistics  
+  LAESTU=.F.,   ! 
+  LAET2M=.T.,   ! T2m analysis 
+  LAEUPFLG=.F., ! 
+  LAEUVT=.F.,   ! U,V,T upper-air analysis 
+  LAEV1M=.F.,   ! U10, V10 analysis 
+  LAEWIO=.T.,   ! Write output file 
+  LECSST=.F.,   
+  NAEINC=0,     
+  NSEAICE=0,    
+  NSSTLIS=0,    ! Use of the NCEP SST field 
+  RCLIMCA=0.045,! Relaxation coefficient for land surface fields  
+  RCLISST=1.,   ! 
+/
+&NACVEG
+  ANEBUL=0.75,          ! Modified dependency function according cloudiness
+  LHUMID=.T.,           ! humidification seulement si wp < veg*wwilt
+  LIMVEG=.T.,           ! If wp >= veg*wwilt 
+  LISSEW=.F.,           ! No temporal smoothing on Wp analysis increments
+  L_SM_WP=.T.,
+  MINDJ=6,              ! Minimal day duration  (hours)
+  NNEBUL=1,
+  NNEIGT=0,
+  NNEIGW=1,
+  NR_SM_WP=1,
+  RA_SM_WP=5000.0,
+  RCLIMN=0.,
+  RCLIMTP=1.,
+  RCLIMTS=0.,
+  RCLIMV=1.,
+  RCLIMWP=0.1,
+  RCLIMWS=0.,
+  SCOEFH=0. ,
+  SCOEFT=0.,            ! No bias correction on T2m analysis increments
+  SEVAP=0.,             ! No dependency on surface evaporation
+  SICE=5.,
+  SIGH2MO=0.1,    ! Sigma obs of  T2m
+  SIGT2MO=1.0,    ! Sigma obs of  Hu2m
+  SMU0=7.,              ! Zenith solar angle taken into account ( threshold )
+  SNEIGT=1.,
+  SNEIGW=0.,
+  SPRECIP=10000.,       ! Precipitation threshold for bias correction (mm) 
+  SWFC=1.0,
+  V10MX=10000.,
+/
+&NADOCK
+  NMXGQA(1)=50,30,10,10,6,6,5,0,0,0,   ! Max number of observations in a quadrant
+  QCORMIN(1)=0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.,
+  !QDSTRA=1000,           !default 1000 m
+  QDSTRA=50000,            ! Max  distance for the horizontal selection  
+
+  QDSTVA=1000,            ! Max distance for vertical selection
+  !MINMA=   ,              ! Predictors number by predictands 
+  !QCORMIN= ,              ! Minimum correlation for the selection by predictand
+  !QDELPI =                ! Minimum distance between 2 selected levels of one observation
+/
+&NAEAEM7
+/
+&NAEAER
+/
+&NAECOAPHY
+/
+&NAEPHY
+/
+&NAERAD
+  LSRTM=.F.,
+/
+&NAIMPO
+/
+&NALORI
+  LCORRF=.T.,
+  RCALPH=0.05 ,
+/
+&NAMAFN
+   GFP_ST%CLNAME='SURFTEMPERATURE',
+   GFP_ST%IBITS=12,
+   GFP_X10U%CLNAME='CLSVENT.ZONAL',
+   GFP_X10U%IBITS=12,
+   GFP_X10V%CLNAME='CLSVENT.MERIDIEN',
+   GFP_X10V%IBITS=12,
+   GFP_X2RH%CLNAME='CLSHUMI.RELATIVE',
+   GFP_X2RH%IBITS=12,
+   GFP_X2RH%IANO=0,
+   GFP_X2T%CLNAME='CLSTEMPERATURE',
+   GFP_X2T%IBITS=12,
+   GFP_XUGST%CLNAME='CLSU.RAF.MOD.XFU',
+   GFP_XUGST%IBITS=12,
+   GFP_XVGST%CLNAME='CLSV.RAF.MOD.XFU',
+   GFP_XVGST%IBITS=12,
+   GFP_XVGST%CLNAME='SURFPRESSION',
+   GFP_XVGST%IBITS=12,
+   GFP_XCCC%IBITS=8,
+   GFP_XHCC%IBITS=8,
+   GFP_XLCC%IBITS=8,
+   GFP_XMCC%IBITS=8,
+   GFP_XTCC%IBITS=8,
+   TFP_ABS%ZFK=32.,
+   TFP_HU%IBITS=12,
+   TFP_MSL%IBITS=12,
+   TFP_PV%ZFK=64.,
+   TFP_T%IBITS=12,
+   TFP_TH%IBITS=12,
+   TFP_THPW%IBITS=12,
+   TFP_HTB%IBITS=16,
+   TFP_HTB%LLGP=.TRUE.,
+   TFP_TN%IBITS=12,
+   TFP_TWV%IBITS=12,
+   TFP_TX%IBITS=12,
+   TFP_U%IBITS=12,
+   TFP_V%IBITS=12,
+   TFP_VOR%ZFK=32.,
+   TFP_VV%ZFK=32.,
+   TFP_CAPE%CLNAME='SURFCAPE.POS.F00',
+   TFP_CAPE%IBITS=12,
+   GFP_XCAPE%IBITS=16,
+   GFP_XCLPH%IBITS=16,
+   GFP_XCLPH%LLMON=.TRUE.,
+/
+&NAMARPHY
+/
+&NAMCA
+/
+&NAMCAPE
+/
+&NAMCFU
+/
+&NAMCHET
+/
+&NAMCHK
+/
+&NAMCLA
+/
+&NAMCLDP
+/
+&NAMCLI
+/
+&NAMCLOP15
+/
+&NAMCLTC
+/
+&NAMCOK
+  RCT2TP=3.0,
+/
+&NAMCOM
+/
+&NAMARG
+   LELAM=.TRUE.,
+   NCONF=701,
+   LECMWF=.FALSE.,
+   CNMEXP='{cnmexp}',
+   LSLAG=.TRUE.,
+   TSTEP=1,
+   CUSTOP='t0',
+   NSUPERSEDE=1,
+/
+&NAMCVER
+/
+&NAMCT0
+  LFDBOP=.F.,
+  LSPRT=.T.,
+  NSPPR=1,
+/
+&NAMCT1
+  LRFILAF=.F.,
+/
+&NAMCUMF
+/
+&NAMCUMFS
+/
+&NAMDDH
+/
+&NAMDFI
+/
+&NAMDIM
+/
+&NAMDIMO
+/
+&NAMDPHY
+/
+&NAMDYN
+/
+&NAMDYNA
+/
+&NAMDYNCORE
+/
+&NAMEMIS_CONF
+/
+&NAMENKF
+/
+&NAMFA
+  NBITCS=-1,
+  NBITPG=30,
+  NSTRON=-1,
+  YFADAL%NBITS=16,
+  YFADOM%NBITS=16,
+  YFAI%NBITS=16,
+  YFAL%NBITS=16,
+  YFAR%NBITS=16,
+  YFAS%NBITS=16,
+  YFATKE%NBITS=16,
+  YFAUAL%NBITS=16,
+  YFAUNEBH%NBITS=16,
+  YFAUOM%NBITS=16,
+/
+&NAMFPC
+/
+&NAMFPD
+/
+&NAMFPDY2
+/
+&NAMFPDYH
+/
+&NAMFPDYP
+/
+&NAMFPDYS
+/
+&NAMFPDYT
+/
+&NAMFPDYV
+/
+&NAMFPF
+/
+&NAMFPG
+/
+&NAMFPIOS
+/
+&NAMFPMOVE
+/
+&NAMFPPHY
+/
+&NAMFPSC2
+/
+&NAMFPSC2_DEP
+/
+&NAMGEM
+/
+&NAMGFL
+  YCPF_NL%NREQIN=0,
+  YDAL_NL%LGP=.T.,
+  YDAL_NL%LREQOUT=.F.,
+  YDAL_NL%NREQIN=0,
+  YDOM_NL%LGP=.T.,
+  YDOM_NL%LREQOUT=.F.,
+  YDOM_NL%NREQIN=0,
+  YI_NL%LGP=.T.,
+  YI_NL%LREQOUT=.F.,
+  YI_NL%NREQIN=0,
+  YL_NL%LGP=.T.,
+  YL_NL%LREQOUT=.F.,
+  YL_NL%NREQIN=0,
+  YQ_NL%LREQOUT=.T.,
+!  YR_NL%LGP=.T.,        
+!  YR_NL%LREQOUT=.T.,
+!  YR_NL%NREQIN=1,        ! Disable reading of microphysic cloud water 
+  YSPF_NL%NREQIN=0,
+  YS_NL%LGP=.T.,
+  YS_NL%LREQOUT=.F.,
+  YS_NL%NREQIN=0,
+  YTKE_NL%LGP=.T.,
+  YTKE_NL%LREQOUT=.F.,
+  YTKE_NL%NREQIN=0,
+  YTTE_NL%LGP=.T.,
+  YTTE_NL%LREQOUT=.F.,
+  YTTE_NL%NREQIN=0,
+  YUAL_NL%LGP=.T.,
+  YUAL_NL%LREQOUT=.F.,
+  YUAL_NL%NREQIN=0,
+  YUEN_NL%LGP=.T.,
+  YUEN_NL%LREQOUT=.F.,
+  YUEN_NL%NREQIN=0,
+  YUNEBH_NL%LGP=.T.,
+  YUNEBH_NL%LREQOUT=.F.,
+  YUNEBH_NL%NREQIN=0,
+  YUOM_NL%LGP=.T.,
+  YUOM_NL%LREQOUT=.F.,
+  YUOM_NL%NREQIN=0,
+  YQ_NL%LGP=.FALSE.,
+  YQ_NL%LSP=.TRUE.,
+/
+&NAMGOES
+/
+&NAMGOM
+/
+&NAMGRIB
+/
+&NAMGWD
+/
+&NAMGWWMS
+/
+&NAMHCP
+/
+&NAMHLOPT
+/
+&NAMRLX
+/
+&NAEPHLI
+/
+&NAMCOSJO
+/
+&NAMINTFLEX
+/
+&NAMINI
+/
+&NAMIOMI
+/
+&NAMIOS
+/
+&NAMIO_SERV
+/
+&NAMJBCODES
+/
+&NAMJFH
+/
+&NAMJG
+/
+&NAMJO
+/
+&NAMLCZ
+/
+&NAMLSFORC
+/
+&NAMMARS
+/
+&NAMMCC
+/
+&NAMMCUF
+/
+&NAMMKODB
+/
+&NAMMODERR
+/
+&NAMMTS
+/
+&NAMMWAVE
+/
+&NAMNMI
+/
+&NAMNPROF
+/
+&NAMNUD
+/
+&NAMOBS
+  LMKCMARPL=.F.,
+  LSLREJ=.T.,
+  L_F_SCR_WORK_TS=.F.,
+  NOBSHOR=203,
+/
+&NAMONEDVAR
+/
+&NAMOPH
+  NCADFORM=1,
+/
+&NAMPAR0
+  !LIMP_NOOLAP=.T.,
+  LMPOFF=.F.,
+  MBX_SIZE=64000000,
+  MP_TYPE=2,
+  NOUTPUT=1,
+  NPRGPEW=1,
+  NPRGPNS={nproc},
+  NPRTRV=1,
+  NPRTRW={nproc},
+  NPROC={nproc},
+/
+&NAMPAR1
+  LSLONDEM=.T.,
+  LSPLIT=.F.,
+  NCOMBFLEN=1800000,
+  NSTRIN={nproc},
+  NSTROUT={nproc},
+  LEQ_REGIONS=.FALSE.,
+/
+&NAMPARAR
+/
+&NAMPHY
+  CGMIXLEN='EL0',
+  LAERODES=.T.,
+  LAEROLAN=.T.,
+  LAEROSEA=.T.,
+  LAEROSOO=.T.,
+  LCOEFKSURF=.T.,
+  LCOEFKTKE=.T.,
+  LCOEFK_FLX=.T.,
+  LCOEFK_PTTE=.T.,
+  LCOEFK_TOMS=.T.,
+  LO3ABC=.T.,
+  LPTKE=.T.,
+  LRRGUST=.F.,
+  LVGSN=.T.,
+/
+&NAMPHY0
+  ALMAV=200.,
+  BEDIFV=0.1,
+  C3TKEFREE=1.183,
+  C_EPSILON=0.871,
+  ETKE_BETA_EPS=0.05,
+  ETKE_LAM0=0.29,
+  ETKE_OLAM=0.29,
+  GCISMIN=5.5E-04,
+  NUPTKE=0.5265,
+  VZIUSTAR0=12.,
+/
+&NAMPHY1
+  RCTVEG(3)=1.1E-05,
+/
+&NAMPHY2
+/
+&NAMPHY3
+/
+&NAMPHYDS
+/
+&NAMPONG
+/
+&NAMPPC
+/
+&NAMPPVI
+/
+&NAMPRE
+  IPRSA(1,5)=39,
+  IPRSA(1,6)=58,
+  IPRSA(1,9)=11,
+  IPRSK(1,1)=  1,  3,  4,57,2,41,42,
+/
+&NAMRAD15
+/
+&NAMRADCMEM
+/
+&NAMRCF
+/
+&NAMRCOEF
+/
+&NAMRES
+/
+&NAMRGRI
+/
+&NAMRINC
+/
+&NAMRIP
+/
+&NAMSATS
+/
+&NAMSCC
+/
+&NAMSCEN
+/
+&NAMSCM
+/
+&NAMSENS
+/
+&NAMSIMPHL
+/
+&NAMSKF
+/
+&NAMSPNG
+/
+&NAMSPSDT
+/
+&NAMSTA
+/
+&NAMSTOPH
+/
+&NAMSWE
+/
+&NAMTESTVAR
+/
+&NAMTLEVOL
+/
+&NAMTOPH
+/
+&NAMTRAJP
+/
+&NAMTRANS
+/
+&NAMTS
+/
+&NAMVAR
+/
+&NAMVARBC
+/
+&NAMVARBC_ALLSKY
+/
+&NAMVARBC_GBRAD
+/
+&NAMVARBC_RAD
+/
+&NAMVARBC_SFCOBS
+/
+&NAMVARBC_TCWV
+/
+&NAMVARBC_TO3
+/
+&NAMVAREPS
+/
+&NAMVDOZ
+/
+&NAMVFP
+/
+&NAMVRTL
+/
+&NAMVV0
+/
+&NAMVV1
+/
+&NAMVWRK
+/
+&NAMWAVELETJB
+/
+&NAMXFU
+/
+&NAM_CANAPE
+  REF_A_H2=85000.,
+  REF_A_T2=80000.,
+  REF_S_H2=0.10,
+  REF_S_T2=1.6,
+
+/
+&NAM_DISTRIBUTED_VECTORS
+/
+&NAPHLC
+/
+&NEMCT0
+/
+&NEMDIM
+/
+&NEMDYN
+/
+&NEMELBC0A
+/
+&NEMELBC0B
+/
+&NEMFPEZO
+/
+&NEMGEO
+/
+&NEMJK
+/
+&NEMVAR
+/
+&NAMSTEPS
+/

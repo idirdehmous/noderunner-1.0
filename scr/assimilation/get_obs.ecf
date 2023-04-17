@@ -1,0 +1,78 @@
+#! /bin/bash
+@manual
+This task will retrieve the SYNOP observations necessary for Data Assimilation.
+If it fails, first look at output and try to fix.
+
+It accesses the operational BUFR file at /ec/vol/msbackup/
+
+Final result should be files  <obstype>s_${RUNDATE}00.bufr.
+
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <settings_functions.h> 
+
+
+
+# bufr_* CL
+module  load  ecmwf-toolbox/2022.08.3.0
+
+cd ${d_OBS}
+ofile=synop_${RUNDATE}00.bufr
+rm -f $ofile
+
+OBS_PATH_REALTIME=/ec/vol/msbackup
+OBS_PATH_ARCHIVE=/hpcperm/cvah/obs/$YYYY/$MM/$DD
+REALTIME=no
+
+
+
+if [[ $REALTIME == "yes" ]] ; then
+  # get 6h obs files from /ec/vol/msbackup/
+  case $RR in
+    00|06|12|18)
+    # just use the file for this instance
+      filelist=BUFR0001${RUNDATE}.DAT
+      ;;
+    03|09|15|21)
+    # at intermediate times, we combine two BUFR files
+#      rd1=`dateincr -h $rundate -3 `
+#      rd2=`dateincr -h $rundate +3 `
+      rd1=`date -u -d "${YYYY}${MM}${DD} ${RR} -3 hours" +%Y%m%d%H`
+      rd2=`date -u -d "${YYYY}${MM}${DD} ${RR} +3 hours" +%Y%m%d%H`
+      filelist="BUFR0001${rd1}.DAT BUFR0001${rd2}.DAT"
+      ;;
+  esac
+
+# Filter the BUFR files for dataCategory
+  for ff in $filelist ; do
+    for cat in 0 1 ; do
+      bufr_copy -w dataCategory=$cat ${OBS_PATH_REALTIME}/$ff bufrtemp
+      cat bufrtemp >> $ofile
+    done
+    rm bufrtemp
+  done
+else
+
+
+  # get archived data
+  #cp ${OBS_PATH_ARCHIVE}/$ofile .
+  # CALL Gts or Mars REQUESTS FUNCTIONS
+SOURCE=$( echo  "${OBS_SOURCE}" | tr '[:upper:]' '[:lower:]' )
+if   [  ${SOURCE}   == "mars" ]; then
+
+   for obstype in @OBSTYPES_SURFACE@  ; do    GetMarsObs ${obstype} ${YYYY}${MM}${DD}${RR} 3 ; done
+   # SAME FOR UPPER
+
+elif [  ${SOURCE}   == "gts"  ]; then
+   for obstype in ${OBSTYPES_SURFACE}  ; do    GetRmiObs ${obstype} ${YYYY}${MM}${DD}${RR}    ; done
+else
+   echo "Unknown observation source, Check the .ini file. Possible values gts or mars !"
+   exit 123
+fi
+
+  
+fi
+
+@include <tail.h>

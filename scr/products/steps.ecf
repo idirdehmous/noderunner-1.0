@@ -1,0 +1,79 @@
+#!/bin/bash
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@manual
+# This script processes the netCDF file with the timestep precipitation output
+# from the ALADIN model run, created for the pysteps probabilistic nowcasting
+# scheme. 
+# It performs a temporal interpolation for the pysteps software and writes out
+# the netCDF file in a CF-1.7 compliant file.
+# Dependencies: R (packages ncdf4, ALARO2STEPS) and netCDF.
+@end
+
+PREFIX="@PREFIX_STEPS@"
+# Raw output file from ALADIN
+ALADIN_NC="steps"
+# Archive location for the NWP output for STEPS-BE.
+
+# Environment.
+# It works, sorry for the cargo cult
+source /space/hpc-apps/profile.d/meteo.sh
+module load lmod
+source /space/hpc-apps/meteo/lmod/lmod/init/profile
+module use /home/ald_team/modules
+module use /usr/share/modules/modulefiles/
+module use /space/hpc-apps/meteo/eb/easybuild/2.5.0/modules/all/
+
+module load R/3.5.0
+module load netCDF/4.2.1.1-GCCcore-6.3.0 # why????
+
+cd ${WORKDIR}/forecast
+
+# 1. Check for existence of netcdf file created by ALADIN
+# ------------------------------------------------------
+
+if ! [[ -s ${ALADIN_NC} ]]
+then
+  echo "Error: Expected timestep output file ${ALADIN_NC} does not exist in ${PWD}"
+  echo "       Verify the NAMSTEPS section of the forecast namelist."
+  exit 1
+fi
+
+# To be safe, get the forecast time from the netCDF file.
+FCATTRIB=$(ncdump -h ${ALADIN_NC} |grep Start_of_forecast)
+FCSTRING=$(echo ${FCATTRIB##*=} | sed 's#\([0-9][0-9]*\)[^0-9]*\([0-9][0-9]*\)[^0-9]*\([0-9][0-9]*\)[^0-9]*\([0-9][0-9]*\)[^0-9]*#\1/\2/\3 +\4 seconds#g')
+FCTIME=$(date -u '+%Y%m%d%H' -d"${FCSTRING}")
+
+STEPS_NC="${PREFIX}_${FCTIME}_steps.nc"
+
+# clean-up (e.g. for re-run)
+rm -f ${STEPS_NC}
+
+# 2. Convert the ALADIN timestep output to the STEPS domain, and archive.
+# ----------------------------------------------------------------------
+# The ALARO2STEPS R package must be available for this to work!
+
+# Create R script
+STEPS_CONV=run_conversion.R 
+rm -f $STEPS_CONV
+
+cat <<EOF >$STEPS_CONV
+library("ALARO2STEPS")
+args <- commandArgs(TRUE)
+if (length(args)<2) {
+  cat("Usage: Rscript ", args[0], " source_nc target_nc [max_tvals]\n")
+  stop("Number of arguments incorrect.")
+}
+source_nc <- args[1]
+target_nc <- args[2]
+max_tvals <- ifelse(length(args)>2, as.numeric(args[3]), -1)
+# Run conversion with default domains.
+convert_45s_to_5min(source_nc, target_nc,max_tvals)
+EOF
+
+Rscript $STEPS_CONV ${ALADIN_NC} ${STEPS_NC}
+
+echo "Finished steps conversion for ${FCTIME}."
+
+@include <tail.h>

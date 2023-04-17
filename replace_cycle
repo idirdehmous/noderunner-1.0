@@ -1,0 +1,15 @@
+#! /bin/bash
+SUITE=$(basename `pwd`)
+node=$1
+
+cycle_inc=`bin/ecf_node_query /${SUITE}:CYCLE_INC`
+for RR in {00..21..3} ; do
+  ln=$(( 1 + 10#$RR / $cycle_inc ))
+  cycle_line=`ecflow_client --group="get=/$SUITE/cycle ; show " | grep "^    family" | head -n $ln | tail -n 1 `
+  cycle_name=`echo $cycle_line | cut -d" " -f2`
+
+# run=$HH
+echo ecflow_client --replace=/$SUITE/cycle/${cycle_name}/$node ${SUITE}.def
+ecflow_client --replace=/$SUITE/cycle/${cycle_name}/$node ${SUITE}.def
+# for some tasks that only exist for "run cycles", this can give some errors
+done

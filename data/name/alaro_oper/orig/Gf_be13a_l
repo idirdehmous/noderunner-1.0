@@ -1,0 +1,85 @@
+! Namelist for GRIB conversion program (fagrib)
+! Local Table 228 (aladin)
+! Full domain Lambert full resolution - be13
+&NAMREF
+!------------------- General Settings -----------------------------
+ICENT={Gcentre},
+IMODEL={Gmodel},
+ITAB2=228,
+NBITS=12,
+MATO=1, MABO=1, MALE=1, MARI=1, ! Set Clipping Margins
+NULNORM=12
+!-------------------------------------------------------------------
+/
+&NAML
+! Now continue with first parameter: Mean sea-level pressure.
+ CPREF='MSL',
+ CNOMA='PRESSURE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=041,
+ ILEVTYPE=1, ! Level type: 200 (ECMWF) not allowed, replace by 1
+/
+! 200m RH:
+&NAML
+ CPREF='H',
+ CNOMA='HUMI_RELATIV',
+ NBLEV=1,
+ JLEVEL(1)=200,
+ IPARA=106,
+ ZMUL=100., ! Multiply by 100 to get %
+/
+! Instantaneous Surface CAPE
+&NAML
+  CPREF='SURF',
+  CNOMA='CAPE.POS.F00',
+  NBLEV=1,
+  JLEVEL(1)=0,
+  IPARA=240,
+/
+!---------Pressure levels FIELDS-----------------
+&NAML
+ CPREF= 'P',
+ CNOMA= 'GEOPOTENTIEL',
+ NBLEV=5,
+ JLEVEL(1)=250,500,850,925,1000,
+ IPARA=096,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'TEMPERATURE',
+ NBLEV=5,
+ JLEVEL(1)=250,500,850,925,1000,
+ IPARA=098,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'HUMI_RELATIV',
+ NBLEV=5,
+ JLEVEL(1)=250,500,850,925,1000,
+ IPARA=106,
+ ZMUL=100., ! Convert to %
+/
+! WIND
+&NAML
+ CPREF= 'P',
+ CNOMU= 'VENT_ZONAL',
+ CNOMV= 'VENT_MERIDIE',
+ LWIND=.FALSE.,
+ NBLEV=5,
+ JLEVEL(1)=250,500,850,925,1000,
+ IPARU=107,
+ IPARV=108,
+/
+&NAML
+! Temperature Advection at 850, 700 and 500 hPa: 215 
+ CPREF= 'P',
+ CNOMA= 'TEMPERATURE',
+ CNOMU= 'VENT_ZONAL',
+ CNOMV= 'VENT_MERIDIE',
+ NBLEV=3,
+ JLEVEL(1)=850,700,500,
+ LADV=.TRUE.
+ IPARA=094,
+/
+!--END Gf_be13a_l END---

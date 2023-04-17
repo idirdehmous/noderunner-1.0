@@ -1,0 +1,8 @@
+#! /bin/bash
+@include <head.h>
+# Start the logserver if it isn't running yet.
+# NOTE: it must run on ECF_LOGHOST, not on a compute node!
+ssh -l @HPC_USER@ @ECF_LOGHOST@ "module load ecflow/@ECF_VERSION@ ; ecflow_logserver.sh -p @ECF_LOGPORT@ "
+
+@include <tail.h>
+

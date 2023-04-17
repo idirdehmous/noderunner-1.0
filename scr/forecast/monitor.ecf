@@ -1,0 +1,67 @@
+#!/bin/bash
+@manual
+Monitor the progress of the model integration.
+This task runs on HPC and simply checks progress every X seconds.
+
+Question: should it run on the ecflow server and do a regular polling to HPC?
+
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+# the node corresponding to the actual model integration:
+FCTASK=/@SUITE@/@FAMILY@/integration
+
+cd ${d_FC}
+
+# ECHALAD file contains last finished lead time in 4 digits (e.g. 0000 to 0048)
+# with IO server, different file name and path!
+if (( $NPROC_IO > 0 )) ; then
+  LDT_FILE="io_serv.000001.d/ECHIS"
+else
+  LDT_FILE="ECHALAD"
+fi
+
+# monitor forecast progress
+hh=-1
+OK=1
+while [[ $OK == 1 ]] ; do
+  sleep 5
+  if [[ -e ${LDT_FILE} ]] ; then
+    hh2=`cat $LDT_FILE`
+    if (( 10#$hh2 > 10#$hh )) ; then
+      hh=$hh2
+      echo "step $hh `date -u `"
+      # avoid triggering post-processing before file is sync'ed to disk
+      sleep 5
+      ecflow_client --meter forecast_counter $hh
+    fi
+  else
+    echo "forecast has not yet progressed to 00 output"
+  fi
+  # did we reach end of forecast?
+  (( 10#$hh == 10#$HOURRANGE )) && break
+
+  # is the forecast still running? Check in ecflow.
+  s0=`ecflow_client --get_state=$FCTASK | grep "task integration"`
+# this line still contains various parts, including e.g. "state:complete"
+  s1=${s0#*state:}
+  fcstate=${s1%% *}
+  case $fcstate in
+    aborted|queued) OK=0 ;;
+    complete|active) ;;
+    *) OK=0 ;;
+  esac
+done
+
+if (( 10#$hh == 10#$HOURRANGE )) ; then
+  echo "forecast FINISHED"
+else
+  echo "forecast STOPPED?"
+  exit 1
+fi
+
+@include <tail.h>
+

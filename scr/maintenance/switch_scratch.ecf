@@ -1,0 +1,30 @@
+@manual
+This script switches the scratch on HPC (a <-> b).
+It should only be used in case there is a problem with the
+current scratch directory (unavailable, full, damaged...)
+
+NEVER run this script while there are still jobs running or queued in the suite!
+
+After the switch, all jobs will use the other scratch. This will can also be seen from the SCRATCH variable in ecflow.
+
+@end
+
+@include <head.h>
+@include <settings.h>
+
+# WARNING: running this script while a cycle is running
+#   will almost certainly cause serious problems !
+
+ecflow_client --alter=change label SCRATCH $SCRATCH2 /@SUITE@/@FAMILY@/@TASK@
+ecflow_client --alter=change variable SCRATCH $SCRATCH2 /@SUITE@
+ecflow_client --alter=change variable BASEDIR $BASEDIR2 /@SUITE@
+# the "other" scratch: (...-a <-> ...-b)
+# we need to create the same basic directories on the alternative scratch
+dirlist="work log name etc bin clim packbin const"
+[[ $ASSIMILATION == 'yes' ]] && dirlist="$dirlist cycle"
+for ddir in $dirlist ; do
+  ssh -l$HPC_USER $HPC_HOST "mkdir -p $BASEDIR2/$ddir"
+done
+ssh -l$HPC_USER $HPC_HOST "ln -sfn $BASEDIR2 @HPC_HOMEBASE@/@SUITE@"
+
+@include <tail.h>

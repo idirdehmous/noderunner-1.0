@@ -1,0 +1,512 @@
+! E903 namelist cy46t1
+! for conversion of MF telecom files (or historical files) to LAM (or lat/lon)
+&NAEPHY
+!   LEPHYS=.TRUE.,
+!   LSLPHY=.TRUE.,
+!   LERADI=.FALSE.,
+!   LELAIV=.FALSE.,
+!   LEFLAKE=.FALSE.,
+!   LEGWWMS=.FALSE.,
+ /
+ &NAERAD
+   LRRTM=.FALSE.,
+   LSRTM=.FALSE.,
+   NMCICA=0,
+   NRPROMA=-8,
+ /
+ &NAMAFN
+!   TFP_U%CLNAME='WIND.U.PHYS',
+!   TFP_V%CLNAME='WIND.V.PHYS',
+   GFP_ST%IANO=0,
+!   TFP_Q%LLGP=.FALSE.
+! Set here the number of bits (def=24) needed to store the values 
+! For GRIB coding, only Max diff dV over domain at a given time matters
+! Physical fields:
+   TFP_FIS%IBITS=12,    ! specsurfgeopot: 4096 values => +-1 over 4000
+   TFP_MSL%IBITS =10,   ! MSLP: dV <102.4hPa:  1024 values 
+!-  TFP_MSL%LLGP=.T.,    ! to output MSLP in GP but then not fitted
+   TFP_SP%IBITS  =11,   ! Psurf: dV<204.8hPa: 2048 values
+   GFP_LSM%IBITS=1,     ! Land-Sea mask
+! Surf/deep fields (CFPPHY)
+   GFP_ST%IBITS  =9, GFP_DST%IBITS =9, ! surf and deep T: dV=512 *0.1K
+   GFP_SSW%IBITS=9, GFP_DSW%IBITS=9,   ! Surf and deep soil wetness
+   GFP_FDSW%IBITS=9, GFP_FSSW%IBITS=9, ! Frozen surf and deep wetness
+!PBL values:
+! MX T2M:
+   GFP_MX2T%IBITS=9, GFP_MN2T%IBITS=9, ! Max / min Temperature at 2m
+   TFP_CAPE%IBITS=8,  !CAPE
+   TFP_CIEN%IBITS=8,  !CIEN
+   TFP_MOCO%IBITS=8,  !MOCON
+   TFP_HCLP%IBITS=11, ! Height of PBL (m) 11 bits= 2048 => autour d'1 m
+! GUSTS:
+   TFP_UGST%IBITS=9, !CLS RAFAL cf winds:
+   TFP_VGST%IBITS=9, !CLS RAFAL cf winds:
+   TFP_FGST%IBITS=9, !CLS RAFAL cf winds:
+! 
+   GFP_CDUTP%IBITS=10!Duration total precip
+! 3D fields:
+   TFP_Z%IBITS=12,
+   TFP_T%IBITS=9, ! geopot, temperature (+-256*1K)
+   TFP_U%IBITS=10, TFP_V%IBITS=10,  ! u and v: 2^10=1024 (+-512m/s) 
+   TFP_VV%IBITS=8, ! w: 2^8=256
+   TFP_HU%IBITS=7, ! RH
+   TFP_PV%IBITS=9, ! POT_VORTICIT
+   TFP_ETH%IBITS=9, ! theta_eq
+   TFP_TH%IBITS=9,  ! theta
+   TFP_THPW%IBITS=9,! theta'w
+!Inst fluxes
+! iCLS fluxes
+   GFP_XX2T%IBITS=9, !Max T2M since last postproc
+   GFP_XN2T%IBITS=9, !Max T2M since last postproc
+   GFP_X2T%IBITS=9,
+   GFP_X2RH%IBITS=7,
+   GFP_X10U%IBITS=7, GFP_X10V%IBITS=7,
+   GFP_XGUST%IBITS=9,
+   GFP_XUGST%IBITS=9,
+   GFP_XVGST%IBITS=9,
+! iCLOUD
+   GFP_XTCC%IBITS=7, GFP_XCCC%IBITS=7,  ! Inst cloud: tot, convec
+   GFP_XHCC%IBITS=7, GFP_XMCC%IBITS=7,  ! Inst cloud: high, medium
+   GFP_XLCC%IBITS=7,                    ! Inst cloud: low
+! iRAD: a 1% pres 2^7=128 but signed value
+   GFP_XTSR%IBITS=8, GFP_XTTR%IBITS=8, 
+   GFP_XSSR%IBITS=8, GFP_XSTR%IBITS=8,
+! iPREC (much smaller than accumulated one)
+   GFP_XCP%IBITS=9, GFP_XCSF%IBITS=9, 
+   GFP_XLSP%IBITS=9, GFP_XLSS%IBITS=9,
+!
+! ACCUMULATED FLUXES:
+! aPREC: 0.0 to 102.4=> 2^10=1024 values
+    GFP_CLSP%IBITS=10,  ! Large scale precip
+    GFP_CCP%IBITS=10,   ! Convec precip
+    GFP_CLSS%IBITS=10, ! LS snow fall
+    GFP_CCSF%IBITS=10, ! LS snow fall
+! aCLOUD: to divide by elapsed time (which reduces the error)
+    GFP_CTCC%IBITS=10, GFP_CCCC%IBITS=10,  ! tot, conv accum cloud
+    GFP_CHCC%IBITS=10, GFP_CMCC%IBITS=10,  ! high, med accum cloud
+    GFP_CLCC%IBITS=10,                     ! low accum cloud
+    GFP_CTSP%IBITS=7,   ! Accum surf pressure tendency 
+! aRAD: 
+    GFP_CSSR%IBITS=8, GFP_CSTR%IBITS=8,   
+    GFP_CTSR%IBITS=8, GFP_CTTR%IBITS=8,
+    GFP_CSOP%IBITS=8, GFP_CSOD%IBITS=8, 
+    GFP_CTOP%IBITS=8, GFP_CTHC%IBITS=8,
+    GFP_CTHD%IBITS=8, GFP_CSOC%IBITS=8,
+! aHUM: (atmospheric)
+    GFP_CLI%IBITS=8, GFP_CICE%IBITS=8, GFP_CQTO%IBITS=8,
+! aHEAT FLUXES:
+    GFP_CSSH%IBITS=8, GFP_CSLH%IBITS=8,
+! aOTHER SURF:
+    GFP_CWS%IBITS=8, GFP_CETP%IBITS=8, 
+    GFP_CCHS%IBITS=8, GFP_CEAS%IBITS=8, 
+ /
+ &NAMARG
+   NCONF=903,
+   CNMEXP='{cnmexp}',
+   LECMWF=.FALSE.,
+   LELAM=.TRUE.,
+   NSUPERSEDE=1,
+   NFPSERVER=0,
+   LSLAG=.F.
+ /
+ &NAMFPIOS
+!  NFPDIGITS=4,
+! CFPCLIFNAME(1)="/path/to/clim/file"
+ /
+ &NAMPAR0
+   NPROC={nproc},
+!   NPRTRW={nproc},
+!   NPRTRV=1,
+   LOPT_SCALAR=.TRUE.,
+   MBX_SIZE=2048000000,
+   MP_TYPE=2,
+   NOUTPUT=1,
+   NPRINTLEV=1,
+ /
+ &NAMDIM
+   NPROMA=-48,
+ /
+ &NAMPAR1
+   LEQ_REGIONS=.FALSE.,
+   LSPLIT=.TRUE.,
+   NDISTIO=0,
+   NSTROUT={nproc},
+   NFLDIN=0,
+   NOUTTYPE=1,
+   NCOMBFLEN=128000000,
+ /
+ &NAMCT0
+   NFPOS=2,
+   NFRPOS=1,
+   NPOSTS(0)=0,
+   LSPRT=.FALSE.,
+   LARPEGEF=.TRUE.,
+   LREFOUT=.FALSE.,
+   NSPPR=0,
+   CFPNCF='./ECHFP',
+   CSCRIPT_PPSERVER='',
+   LGRIB_API=.FALSE.,
+ /
+ &NAMTRANS
+   LFFTW=.TRUE.,
+ /
+ &NAMOPH
+!   CCLIMINC='.m',
+ /
+ &NAMGFL
+   YQ_NL%LGP=.F.,
+   YQ_NL%LSP=.T.,
+!   YO3_NL%LGP=.FALSE.,
+!   YQ_NL%LGPINGP=.TRUE.,
+   YQ_NL%NREQIN=1,
+   YR_NL%NREQIN=0,
+   YS_NL%NREQIN=0,
+   YG_NL%NREQIN=0,
+   YI_NL%NREQIN=0,
+   YL_NL%NREQIN=0,
+ /
+ &NAMFAINIT
+!   JPXTRO=1280,
+!   JPXLAT=5120,
+
+ /
+ &NAMFA
+! Default GRIB coding in FA files:
+   NBITPG=16, ! GP fields over 16 bits (def=24)
+   NBITCS=16, ! SP fields over 16 bits (def=24)
+  
+!   NBITCS=-1,
+!   NBITPG=-1,
+   NSTRON=20,
+   YFAR%CLNAME='RAIN',
+   YFAS%CLNAME='SNOW',
+   YFAL%NBITS=16,
+   YFAI%NBITS=16,
+   YFAR%NBITS=16,
+   YFAS%NBITS=16,
+ /
+ &NAMCT1
+   LRFILAF=.FALSE.,
+ /
+ &NAMCVER
+ /
+ &NAMDYNA
+ /
+ &NACIETEO
+ /
+ &NACOBS
+ /
+ &NACTAN
+ /
+ &NACTEX
+ /
+ &NACVEG
+ /
+ &NADOCK
+ /
+ &NAEAEM7
+ /
+ &NAEAER
+ /
+ &NAECOAPHY
+ /
+ &NAEPHLI
+ /
+ &NAEVOL
+ /
+ &NAIMPO
+ /
+ &NALORI
+ /
+ &NAMARPHY
+ /
+ &NAMCA
+ /
+ &NAMCAPE
+ /
+ &NAMCFU
+ /
+ &NAMCHEM
+ /
+ &NAMCHET
+ /
+ &NAMCHK
+ /
+ &NAMCLA
+ /
+ &NAMCLDP
+ /
+ &NAMCLI
+ /
+ &NAMCLOP15
+ /
+ &NAMCLTC
+ /
+ &NAMCOK
+ /
+ &NAMCOM
+ /
+ &NAMCOSJO
+ /
+ &NAMCOUPLO4
+ /
+ &NAMCUMF
+ /
+ &NAMCUMFS
+ /
+ &NAMCVMNH
+ /
+ &NAMDDH
+ /
+ &NAMDFI
+ /
+ &NAMDIMO
+ /
+ &NAMDPHY
+ /
+ &NAMDYN
+ /
+ &NAMDYNCORE
+ /
+ &NAMEMIS_CONF
+ /
+ &NAMENKF
+ /
+ &NAMGEM
+ /
+ &NAMGRIB
+ /
+ &NAMGWD
+ /
+ &NAMGWWMS
+ /
+ &NAMIAU
+ /
+ &NAMICE
+ /
+ &NAMINI
+ /
+ &NAMINTFLEX
+ /
+ &NAMIOMI
+ /
+ &NAMIOS
+ /
+ &NAMIO_SERV
+ /
+ &NAMJBCODES
+ /
+ &NAMJFH
+ /
+ &NAMJG
+ /
+ &NAMLCZ
+ /
+ &NAMLSFORC
+ /
+ &NAMMARS
+ /
+ &NAMMCC
+ /
+ &NAMMCUF
+ /
+ &NAMMKODB
+ /
+ &NAMMODERR
+ /
+ &NAMMTS
+ /
+ &NAMMWAVE
+ /
+ &NAMNPROF
+ /
+ &NAMNORGWD
+ /
+ &NAMNUD
+ /
+ &NAMOBS
+ /
+ &NAMONEDVAR
+ /
+ &NAMOOPS
+ /
+ &NAMOPTCMEM
+ /
+ &NAMPARAR
+ /
+ &NAMPHMSE
+ /
+ &NAMPHY
+ ! AD : to output physical surface fields from clim
+  LVGSN=.T.        ! .F. when fields not available
+  LO3ABC=.TRUE.,   ! For ozone fields
+  LAERODES=.TRUE., ! For aerosol fields
+  LAEROLAN=.TRUE.,
+  LAEROSEA=.TRUE.,
+  LAEROSOO=.TRUE.,
+  LCONDWT=.FALSE.,
+  LPROCLD=.FALSE., 
+ /
+ &NAMPHY0
+ /
+ &NAMPHY1
+ /
+ &NAMPHY2
+ /
+ &NAMPHY3
+ /
+ &NAMPHYDS
+ /
+ &NAMPONG
+ /
+ &NAMPPC
+ /
+ &NAMPPVI
+ /
+ &NAMPRE
+ /
+ &NAMRAD15
+ /
+ &NAMRADCMEM
+ /
+ &NAMRCF
+ /
+ &NAMRCOEF
+ /
+ &NAMRES
+ /
+ &NAMRGRI
+ /
+ &NAMRINC
+ /
+ &NAMRIP
+ /
+ &NAMRLX
+ /
+ &NAMSATS
+ /
+ &NAMSCC
+ /
+ &NAMSCEN
+ /
+ &NAMSCM
+ /
+ &NAMSEKF
+ /
+ &NAMSENS
+ /
+ &NAMSIMPHL
+ /
+ &NAMSPNG
+ /
+ &NAMSPSDT
+ /
+ &NAMSTA
+ /
+ &NAMSTOPH
+ /
+ &NAMSWE
+ /
+ &NAMTESTVAR
+ /
+ &NAMTHLIM
+ /
+ &NAMTOPH
+ /
+ &NAMTRAJP
+ /
+ &NAMTRANS0
+ /
+ &NAMTS
+ /
+ &NAMVAR
+ /
+ &NAMVARBC
+ /
+ &NAMVARBC_AIREP
+ /
+ &NAMVARBC_ALLSKY
+ /
+ &NAMVARBC_GBRAD
+ /
+ &NAMVARBC_RAD
+ /
+ &NAMVARBC_SFCOBS
+ /
+ &NAMVARBC_TCWV
+ /
+ &NAMVARBC_TO3
+ /
+ &NAMVAREPS
+ /
+ &NAMVDOZ
+ /
+ &NAMVOLCANO
+ /
+ &NAMVRTL
+ /
+ &NAMVV0
+ /
+ &NAMVV1
+ /
+ &NAMVWRK
+ /
+ &NAMWAVELETJB
+ /
+ &NAMXFU
+ /
+ &NAM_CANAPE
+ /
+ &NAM_DISTRIBUTED_VECTORS
+ /
+ &NAPHLC
+ /
+ &NEMCT0
+ /
+ &NEMDIM
+ /
+ &NEMDYN
+ /
+ &NEMELBC0A
+ /
+ &NEMELBC0B
+ /
+ &NEMGEO
+ /
+ &NEMJK
+ /
+ &NEMVAR
+ /
+ &NEMWAVELET
+ /
+ &NAMDIM_TRAJ
+ /
+ &NAMVDF
+ /
+ &NAMGWDIAG
+ /
+ &NAMRIP0
+ /
+ &NAETLDIAG
+ /
+ &NAMMETHOX
+ /
+ &NAMSPP
+ /
+ &NAMACV
+ /
+  &NAMFPSC2
+!   NFPROMA=-48,
+ /
+ &NAMFPSC2_DEP
+!   NFPROMA_DEP=-48,
+ /
+ &NAMFPF
+ /
+ &NEMFPEZO
+ /
+&NAMDVISI
+ /
+&NAMFPOBJ
+/
+

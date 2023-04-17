@@ -1,0 +1,97 @@
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+#-- create directory
+#RecreateDir ${d_ADDFIELDS}
+mkdir -p ${d_SST}
+cd ${d_SST}
+rm -f *
+
+#-------------------#
+#-----SST-update----#
+#-------------------#
+
+# use BLENDSUR to replace SST by the latest coupling data
+#-- using BLENDSUR (could also be with MASTERODB conf 931?)
+# there is no point doing this at 3,9,15,21 cycles!
+
+if [ -e ${d_GUESS}/first_guess_isba ] ; then
+  fg=${d_GUESS}/first_guess_isba
+else
+  fg=${d_GUESS}/first_guess
+fi
+
+if (( $RR % 6 )) ; then
+  echo "No SST update for cycle $RR."
+#  ln -sf ${d_ADDFIELDS}/first_guess_isba first_guess_sst
+  ln -sf $fg ${d_GUESS}/first_guess_sst
+  # do nothing
+else # SST update from LBC
+  export DR_HOOK_NOT_MPI=1 # BLENDSUR is linked with mpidummy
+  # 1. set SST to zero above sea
+  # you're not allowed to open a file twice, so we make an extra copy
+#  cp ${d_GUESS}/first_guess fguess
+  cp $fg fguess
+  cp fguess fguess_c1
+  cp fguess fguess_c2
+#  cp fguess_ts fguess_c1
+#  cp fguess_ts fguess_c2
+
+  cat << ENDF > fort.4
+  &NAMBLENDSUR
+   I_NDEBUG=1
+   CL_FNAME1='fguess',
+   CL_FNAME2='fguess_c1',
+   CL_FNAME3='fguess_c2',
+   ZSIGNL=0.,
+   ZSIGNS=-1.,
+   I_NVARB=2,
+   I_NVARC=1,
+   CL_CVARB(1)='PROFTEMPERATURE ',
+   CL_CVARB(2)='SURFTEMPERATURE ',
+   CL_CVARC(1)='SURFIND.TERREMER',
+  /
+  &NAMDYNCORE
+  /
+  &NAMSCEN
+  /
+ENDF
+
+  ${d_BIN}/BLENDSUR
+# fguess_c2 now has "0" in sea points
+
+# 2. add SST's from LBC-0
+# NOTE: don't use file names longer than 14 characters!
+  ln -sf ${d_LBC}/ELSCF${CNMEXP}ALBC000 sst
+  cp fguess_c2 fguess_sst
+
+  cat << ENDF > fort.4
+  &NAMBLENDSUR
+   I_NDEBUG=1
+   CL_FNAME1='fguess_c2',
+   CL_FNAME2='sst',
+   CL_FNAME3='fguess_sst',
+   ZSIGNL=0.,
+   ZSIGNS=1.,
+   I_NVARB=2,
+   I_NVARC=1,
+   CL_CVARB(1)='PROFTEMPERATURE ',
+   CL_CVARB(2)='SURFTEMPERATURE ',
+   CL_CVARC(1)='SURFIND.TERREMER',
+  /
+  &NAMDYNCORE
+  /
+  &NAMSCEN
+  /
+ENDF
+
+  ${d_BIN}/BLENDSUR
+  # fguess_sst now has new SST in sea points
+  mv fguess_sst first_guess_sst
+  cp first_guess_sst ${d_GUESS}/first_guess_sst
+  ln -sf ${d_GUESS}/first_guess_sst ${d_GUESS}/first_guess
+fi
+
+
+@include <tail.h>

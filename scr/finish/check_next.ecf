@@ -1,0 +1,32 @@
+@include <head.h>
+@manual
+This task checks whether the next cycle has been queued. Normally it has (task queue_next runs at the start of the cycle), but in some special cases it may be stalled:
+1. if this is a re-queued cycle, the next cycle may already be queued, so queue_next can not run again.
+2. if the "next" cycle is actually still busy from the -24h run.
+
+In the first case, "queue_next" should be set complete so that the current cycle can finish. In the second case we do nothing. The current cycle will not be complete until "next" is ready to accept the next cycle.
+
+This is not perfect. If you are e.g. re-running with the purpose of also re-running all next cycles as well, you will have to make sure manually that they are "complete".
+
+@end
+@include <settings.h>
+
+# This job should only be triggered if "queue_next" is not complete!
+
+# ideally, you would like to compare this date with YMD RR variables of next cycle
+# but those are hard to read (changing them is easy...)
+# so we use a variable LAST_QUEUED used by all cycles
+# nymd=`ecf_node_query /@SUITE@/cycle/@NEXT_RUN@:YMD`
+# 
+
+if [[ "@LAST_QUEUED@" == "" || "@LAST_QUEUED@" -ge $NEXT_RUNDATE ]] ; then
+  # LAST_QUEUED == "" : probably the whole suite was re-queued (restart or from ui)
+  #    so if the "next" is not complete, it probably was already queued before the restart
+  #    or it is suspended
+  # the next job has already been queued, so no need to do it again
+  # if you really need to re-queue it, set complete manually.
+  ecflow_client --force=complete /@SUITE@/cycle/@THIS_RUN@/queue_next
+fi
+
+@include <tail.h>
+

@@ -1,0 +1,58 @@
+@manual
+This task copies the 4 ISBA soil fields (water content and temperature) 
+from the CANARI surface analysis into the 3D initial field from LBC's.
+
+The result may serve as:
+  - initial file for the forecast (no 3d-Var)
+  - first guess for 3d-Var
+
+@end
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+# TODO: spectral DFI blending of atmo fields rather than simple copy?
+
+set -x
+WDIR=${d_ASSIM}/cpsurf
+[ -e $WDIR ] || mkdir -p ${WDIR}
+cd ${WDIR}
+rm -f *
+
+# The 00h LBC is considered a first version of 3d field "analysis"
+cp ${d_LBC}/ELSCFAO40ALBC000    PF${CNMEXP}${DOMAIN}+0000
+
+if [[ ! -e ${d_GUESS}/first_guess_canari ]] ; then
+  echo "No surface analysis !"
+  exit 1
+fi
+
+cp ${d_GUESS}/first_guess_canari ICMSH${CNMEXP}INIT
+
+# blend soil fields from surface analysis to 3d FG 
+# NAMELIST
+NAMELIST_BLEND="nam_addsurf namfpc_soil ${DOMAIN}.${NLEVELS}"
+NAMELIST="$( for nn in $NAMELIST_BLEND ; do echo ${d_NAMELIST}/$nn ; done )"
+cat ${NAMELIST} | sed \
+  -e "s/CNMEXP=.*/CNMEXP=$CNMEXP/"           \
+  -e "s/CFPDOM(1)=.*/CFPDOM(1)='${DOMAIN}'/"   \
+  -e "s/{nproc}/$NPROC/" \
+  > fort.4
+
+if [ -e ${d_BIN}/MASTERODB_PP ] ; then
+  ln -sf ${d_BIN}/MASTERODB_PP MASTERODB
+else
+  ln -sf ${d_BIN}/MASTERODB MASTERODB
+fi
+$MPIRUN ./MASTERODB >out.log 2>err.log || {
+  echo "There was a problem"
+  exit 1
+}
+
+cp PF${CNMEXP}${DOMAIN}+0000 ${d_GUESS}/analysis
+# make sure the file is really physically copied before triggering forecast:
+sync
+
+@include <tail.h>

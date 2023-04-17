@@ -1,0 +1,23 @@
+#!/bin/bash
+@manual
+This task saves the model output (usually the +3h forecast) to a temporary directory for use in FEMARS.
+
+If this job fails, first re-run once (it may be due to file system latency on the HPC). If it still fails:
+  - has the forecast run correctly?
+  - is the $SCRATCH directory full?
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+set -x
+
+hh=$(printf %02g @DIFF_LEN@)
+odir=@d_OUT@/@B_PART@/@MEMBER@/@RUNDATE@
+mkdir -p $odir
+
+# we prefer to use cp rather than mv
+cp ${d_FC}/ICMSH${CNMEXP}+00$hh $odir
+
+@include <tail.h>

@@ -1,0 +1,75 @@
+#!/bin/bash
+
+module () 
+{ 
+    eval $($LMOD_CMD bash "$@") && eval $(${LMOD_SETTARG_CMD:-:} -s sh)
+}
+
+MPIPACKAGE="hpcx-openmpi/2.9.0"
+COMPILER="intel/2021.4.0"
+module purge                   2>/dev/null
+module load prgenv/intel
+module load $COMPILER          2>/dev/null
+module load intel-mkl/19.0.5   2>/dev/null
+module load $MPIPACKAGE        2>/dev/null
+module load gcc/8.4.1          2>/dev/null
+# not needed here because TMPDIR (as falldown of TMP) is on ssd : export TMP=/tmp
+
+# path to fypp :
+export PYTHONPATH=/perm/rme/python3/site-packages/lib/python3.6/site-packages:$PYTHONPATH
+export PATH=/perm/rme/python3/site-packages/bin:$PATH
+
+# For all :
+# -lirng -lcilkrts because ECMWF works with the mandatory intel modules and they missed the rpath in background libraries
+COMPILER_LIBRARIES="-qmkl=sequential -lirc -lirng -lcilkrts $(echo $LD_LIBRARY_PATH | sed -e "s/:/ -Wl,-rpath,/g" -e "s/^/-Wl,-rpath,/")"
+
+# Needed to have fortran libraries linked with C++ :
+FORTRAN_LIBRARIES="-lifcoremt -lifport $(echo $(mpifort -showme:libs | tr " " "\n" | grep -v ^mpi$ | sed "s/^/-l/"))"
+
+#-------- Careful with these ---------------------------------
+# Fortran and C :
+AUX_INSTALLDIR=/perm/rme/packages/auxlibs/3.7/INTEL/2021.4
+AUX_INCDIR=$AUX_INSTALLDIR/include/bufr
+AUX_LIBDIR=$AUX_INSTALLDIR/lib
+AUX_LDFLAGS="-L$AUX_LIBDIR -Wl,-rpath,$AUX_LIBDIR"
+ECCODES_INSTALLDIR=/perm/rme/packages/eccodes-2.21.0/INTEL/2021.4
+ECCODES_INCDIR=$ECCODES_INSTALLDIR/include
+ECCODES_LIBDIR=$ECCODES_INSTALLDIR/lib64
+ECCODES_LDFLAGS="-L$ECCODES_LIBDIR -Wl,-rpath,$ECCODES_LIBDIR"
+NETCDF_INSTALLDIR=/usr/local/apps/netcdf4/4.7.4/INTEL/2021.4
+NETCDF_INCDIR=$NETCDF_INSTALLDIR/include
+NETCDF_LIBDIR=$NETCDF_INSTALLDIR/lib
+NETCDF_LDFLAGS="-L$NETCDF_LIBDIR -Wl,-rpath,$NETCDF_LIBDIR"
+HDF5_INSTALLDIR=/usr/local/apps/hdf5/1.10.6/INTEL/2021.4
+HDF5_INCDIR=$HDF5_INSTALLDIR/include
+HDF5_LIBDIR=$HDF5_INSTALLDIR/lib
+HDF5_LDFLAGS="-L$HDF5_LIBDIR -Wl,-rpath,$HDF5_LIBDIR"
+# C++ :
+BOOST_INSTALLDIR=/perm/rme/packages/boost/1_73_0/GNU/8.4
+BOOST_INCDIR=$BOOST_INSTALLDIR/include
+BOOST_LIBDIR=$BOOST_INSTALLDIR/lib
+BOOST_LDFLAGS="-L$BOOST_LIBDIR -Wl,-rpath,$BOOST_LIBDIR"
+BOOST_CPPFLAGS="-I$BOOST_INCDIR"
+
+LOCAL_CPPFLAGS="-I$HDF5_INCDIR -I$NETCDF_INCDIR -I$ECCODES_INCDIR -I$AUX_INCDIR"
+LOCAL_LDFLAGS="$AUX_LDFLAGS $ECCODES_LDFLAGS $NETCDF_LDFLAGS $HDF5_LDFLAGS"
+#-------------------------------------------------------------------------------------------
+
+export C_INCLUDE_PATH=$HDF5_INCDIR:$NETCDF_INCDIR:$ECCODES_INCDIR:$AUX_INCDIR:$C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=$HDF5_INCDIR:$NETCDF_INCDIR:$ECCODES_INCDIR:$AUX_INCDIR:$CPLUS_INCLUDE_PATH
+
+export OMPI_CFLAGS="$LOCAL_CPPFLAGS $LOCAL_LDFLAGS $FORTRAN_LIBRARIES $COMPILER_LIBRARIES"
+export OMPI_CXXFLAGS="$BOOST_CPPFLAGS $LOCAL_CPPFLAGS $LOCAL_LDFLAGS $BOOST_LDFLAGS $COMPILER_LIBRARIES $FORTRAN_LIBRARIES"
+export OMPI_FCFLAGS="$LOCAL_CPPFLAGS $LOCAL_LDFLAGS $COMPILER_LIBRARIES"
+
+# A taste of 'module show' :
+echo
+echo "setting $MPIPACKAGE with $COMPILER :"
+echo "OMPI_CC=$OMPI_CC"
+echo "OMPI_FC=$OMPI_FC"
+echo "OMPI_CXX=$OMPI_CXX"
+echo "OMPI_CFLAGS=$OMPI_CFLAGS"
+echo "OMPI_FCFLAGS=$OMPI_FCFLAGS"
+echo "OMPI_CXXFLAGS=$OMPI_CXXFLAGS"
+echo
+

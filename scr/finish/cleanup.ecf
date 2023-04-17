@@ -1,0 +1,17 @@
+@manual
+For the moment, this is a place-holder task. It is supposed to do some cleanup on HPC, but unrelated to data assimilation.
+@end
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+
+set -x
+umask 0022
+# let's do a little bit of cleaning etc.
+# but we leave the main output 
+
+# clean-up ? This job clears some space on $SCRATCH.
+
+
+@include <tail.h>

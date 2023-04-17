@@ -1,0 +1,54 @@
+&NAMCHK
+  LECHKEVO=.TRUE.,
+  LECHKTND=.FALSE.,
+  LECHKPS=.TRUE.,
+  NGPCHK= 3,
+! Points for Elia:
+!- 51,554 / 2,951 (Windpark_C-power) [94m]
+!- 51.660 / 2,800 (Windpark_Belwind,Windpark_Nobelwind) [72m, 79m]
+!- 51,619 / 2,901 (Windpark_Northwind) [127m]
+! use R to find closest grid index, e.g.
+! > geogrid::point.closest.init(domain=belgium::domains("BE40a"), lon=2.951, lat=51.554)
+ NXCHK(  1)= 198, NYCHK(  1)= 225,
+ NXCHK(  2)= 195, NYCHK(  2)= 227,
+ NXCHK(  3)= 197, NYCHK(  3)= 226,
+! List of fields: depends on number of levels (87)
+! 001 - 087 : vorticity (levels 1-87)
+! 088 - 174 : divergence
+! 175 - 261 : U
+! 262 - 348 : V
+! 349 - 435 : T
+! 436       : Psurf
+  NNFCHK( 1)= 252,
+  NNFCHK( 2)= 253,
+  NNFCHK( 3)= 254,
+  NNFCHK( 4)= 255,
+  NNFCHK( 5)= 256, 
+  NNFCHK( 6)= 257, 
+  NNFCHK( 7)= 258,
+  NNFCHK( 8)= 259,
+  NNFCHK( 9)= 260,
+  NNFCHK(10)= 261, ! 3*NFLEV U ^^
+  NNFCHK(11)= 339, 
+  NNFCHK(12)= 340,
+  NNFCHK(13)= 341,
+  NNFCHK(14)= 342,
+  NNFCHK(15)= 343, 
+  NNFCHK(16)= 344, 
+  NNFCHK(17)= 345,
+  NNFCHK(18)= 346,
+  NNFCHK(19)= 347,
+  NNFCHK(20)= 348, ! 4*NFLEV V ^^
+  NNFCHK(21)= 426,
+  NNFCHK(22)= 427,
+  NNFCHK(23)= 428,
+  NNFCHK(24)= 429,
+  NNFCHK(25)= 430,
+  NNFCHK(26)= 431,
+  NNFCHK(27)= 432,
+  NNFCHK(28)= 433,
+  NNFCHK(29)= 434,
+  NNFCHK(30)= 435, ! 5*NFLEV T ^^
+  NNFCHK(31)= 436, ! 5*NFLEV + 1  pressure
+  NFLDCHK= 31,
+/

@@ -1,0 +1,32 @@
+@include <head.h>
+@manual
+RMI-only
+This task extracts point data from the mode output and writes it to Oracle. The actual R scripts are installed on moria.
+
+If this task fails:
+ - make sure the forecast and post-processing has finished correctly
+ - re-run
+ - set to complete and warn whoever is in charge.
+
+@end
+#@include <settings.h>
+
+set -x
+
+LABEL=@LABEL@
+GRAB_USER=@GRAB_USER@
+GRAB_HOST=@GRAB_HOST@
+RR=@RR@
+
+# NOTE: currently this jobs is local  on the ecflow server
+# we call the GRAB routine on MORIA via ssh
+# [may change in the future]
+# NOTE: we assume the copy to AFD is complete!
+#       BUT: only afd_repository is sure. There may be delay...
+#       so should we do some checking?
+# this will do the actual data extraction to Oracle
+# FIXME: some errors in GRAB don't show up in ecflow as errors.
+#        in the future, this job should run on Moria directly via ecflow
+ssh -l ${GRAB_USER} ${GRAB_HOST} alaro/GRAB/grab.scr_oper $RR $LABEL
+
+@include <tail.h>

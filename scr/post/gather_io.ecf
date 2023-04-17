@@ -1,0 +1,49 @@
+#!/bin/bash
+@manual
+Gather the partial output files from the IO server.
+Output is the full historical file at certain lead time.
+
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+set -x
+
+# loop over hours OR call the script for only 1 hour?
+hh=@PPHH:00@
+
+# if we turned off IO_SERVER, there is nothing to do
+if (( $NPROC_IO > 0 )) ; then
+
+# Prepare directory
+WDIR=${d_POST}/gather_io/$hh
+mkdir -p $WDIR
+cd $WDIR
+rm -f *
+
+ln -s ${d_BIN}/lfitools lfitools
+sleep 30 # wait for all files to be ready
+./lfitools facat all \
+  ${d_FC}/io_serv.000*/ICMSH${CNMEXP}+00${hh}.gridall \
+  ${d_FC}/io_serv.000*/ICMSH${CNMEXP}+00${hh}.speca.???? \
+  ICMSH${CNMEXP}+00${hh}.tot
+
+# NOTE: sfx seems to write to the root directory as well...
+# This should only be run for "first guess" lead times (+3h)
+if [[ $SURFACE == "surfex"  && $hh == "03" ]] ; then
+  ./lfitools facat all \
+    ${d_FC}/ICMSH${CNMEXP}+00${hh}.sfx  \
+    ${d_FC}/io_serv.000*/ICMSH${CNMEXP}+00${hh}.sfx \
+    ICMSH${CNMEXP}+00${hh}.sfx.tot
+fi
+
+mv ICMSH${CNMEXP}+00${hh}.tot ${d_FC}/ICMSH${CNMEXP}+00${hh}
+#mv ICMSH${CNMEXP}+00${hh}.sfx.tot ${d_FC}/ICMSH${CNMEXP}+00${hh}.sfx
+fi
+sleep 5
+echo === FINISHED ===
+
+@include <tail.h>
+

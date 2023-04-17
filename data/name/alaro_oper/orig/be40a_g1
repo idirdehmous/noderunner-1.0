@@ -1,0 +1,12 @@
+! $Id$
+&NAMFPD 
+! Beware: each on a separate line with the (1)
+ NLAT(1)=     179,
+ NLON(1)=     179,
+ RLONC(1)=4.5535,
+ RLATC(1)=50.51,
+ RDELX(1)= 0.05305,
+ RDELY(1)= 0.03538,
+/
+&NAMFPG 
+/

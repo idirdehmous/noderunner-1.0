@@ -1,0 +1,53 @@
+! fields to be archived (4km and 1.3km run)
+&NAMFPC
+  CFPFMT='LELAM',
+  NFPCLI=3,
+  LFPMOIS=.FALSE.,
+  LFPQ=.FALSE.,
+  CFPDOM(1)='{cfpdom}',
+  CFPCFU(1)=
+            {precipitation},
+            'SURFRAYT DIR SUR','SURFRAYT SOLA DE','SURFRAYT THER DE',
+            'ATMONEBUL.TOTALE','ATMONEBUL.HAUTE','ATMONEBUL.MOYENN','ATMONEBUL.BASSE',
+            'ATMOHUMI TOTALE ',
+  CFP2DF(1)= 
+            'MSLPRESSURE     ','SURFPRESSION    ',
+            'SURFCAPE.POS.F00',
+            'CLSRAFALES.POS  ',
+!            'SURFTOT.WAT.VAPO', ! total water vapour? total water is better
+!            'CLSVENT_ZONA.POS','CLSVENT_MERI.POS',
+!            'CLSHU.RELATI.POS','CLSHU.SPECIF.POS',
+!            'CLSTEMPERATU.POS',
+!            'CLSTEMPE.MIN.POS','CLSTEMPE.MAX.POS',
+  CFPXFU(1)='CLSVENT.ZONAL   ','CLSVENT.MERIDIEN',
+            'CLSU.RAF.MOD.XFU','CLSV.RAF.MOD.XFU',
+            'CLSTEMPERATURE  ',
+            'CLSMAXI.TEMPERAT','CLSMINI.TEMPERAT',
+            'CLSHUMI.RELATIVE','CLSHUMI.SPECIFIQ',
+            'S000PLUIE STRATI','S000PLUIE CONVEC',
+            'S000NEIGE STRATI','S000NEIGE CONVEC',
+  CFP3DF(1)='GEOPOTENTIEL', 'TEMPERATURE',
+            'VENT_ZONAL', 'VENT_MERIDIEN',
+            'HUMI.SPECIFI', 'HUMI_RELATIV',
+            'PRESSURE',
+            'THETA_EQUIVA', ! proposed by Pieter
+!            'ISOT_ALTIT',
+! ISOT_ALTIT gives some bogus fields at the height levels...
+!   actually we only want the height of the 273.15 isotemp
+!   so also other fields at KT273 are not really interesting
+!   in total that's 10 fields we don't really want...
+!  RFP3I(1)=-273.15,
+
+! TO DO (no hurry)
+!   equivalent potential temperature (3D field)
+!   total water
+!   best choice for CAPE
+  RFP3P(1)=100000.,92500.,85000.,70000.,50000.,25000.,
+! NFPCAPE=6 not yet implemented in cy40t1 baseline
+  NFPCAPE=1,
+  RFP3H(1)=50.,100.,150.,200.,
+/
+&NAMFPD
+/
+&NAMFPG
+/

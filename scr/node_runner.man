@@ -1,0 +1,28 @@
+@manual
+TEST_AROME
+
+This is the first version of a new arome suite with data assimilation. The structure and internal organisation is totally different from the old operational suite(s). In the future we hope to use this new ecflow suite structure (called "node_runner") for all operational suites.
+
+Alex Deckmyn, 2020-02-26
+
+=======================
+
+1. Organisation
+
+In node_runner, practically all code is inside the ecflow containers. So you see all steps explicitly via ecflow_ui. You can also see all the job output on HPC, as long as the "log server" is running there.
+
+There are 8 cycles. This is because the assimilation cycle is 3h. The actual forecasts are produced 4x per day. But there are also 4 "pre" cycles that do only data assimilation and a short 3h forecast.
+
+Such "pre" cycles will be run just before the main forecast cycle, in the same time slot.
+
+2. NEVER BREAK THE CYCLE!
+
+The current operational suite are independent forecasts in "downscaling mode". That means that e.g. the 00h forecast is totally separate from the previous and next run. But with data assimilation, thiis is changed. The forecast run now creates the "first guess" for the next cycle's initial state.
+
+Therefore, it is *vitally important* that all forecasts are run in the right order. For instance, if 06h has crashed, the 12h cycle can not run. So one should always strive to get at least the first 3h forecast finished before the next cycle can run.
+
+A "cold start" (i.e. without first guess) is technically possible but not easy. And it would mean a deterioration of teh forecast quality for more than a month (the surface state needs a long spin-up).
+
+
+
+@end

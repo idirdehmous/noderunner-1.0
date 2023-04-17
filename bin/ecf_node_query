@@ -1,0 +1,47 @@
+#! /bin/bash
+# use ecflow_client to get the state (complete|aborted|queued|...) of any node
+# ecf_node_state /<suite>/family.../node
+# this node can be a task or a family
+
+# use ":var" to get the value of a variable defined in the node
+# other possible separators: -,= (NOT ;|)
+# ? how to get a label? you get the original value (when loaded from .def) and the current value if modified 
+node=$1
+
+case $node in
+  *":"*) 
+    task=var
+    var=`echo $1|cut -d":" -f2`
+    node=`echo $1|cut -d: -f1`
+    ;;
+  *","*)
+    task=label
+    label=`echo $1|cut -d"," -f2`
+    node=`echo $1|cut -d"," -f1`
+    ;;
+  *) task=status ;;
+esac
+
+#echo $node $task 
+# for a generic node, there may be subnodes with other "state", "var", "label"
+# only first one!
+# so just take the first line of the output (head), 
+# find the field starting with "state:" (awk)
+# print what follows (cut)
+case $task in
+  status) line=`ecflow_client --group="get=$node ; show state" | head -n 1`
+          status=`echo $line | awk '{ for (i=1 ; i<=NF ; i++) { if ( $i ~ /^state:/ ) {print $i ; break}}}' | cut -d: -f2`
+          echo $status
+          ;;
+  var) line=`ecflow_client --group="get=$node ; show " | grep "edit $var" | head -n 1 `
+       val=`echo $line | cut -d" " -f3 | sed -e "s/'//g" `
+       echo $val
+      ;;
+  label) line=`ecflow_client --group="get=$node ; show state" | grep "label $label" | head -n 1 `
+        # either the 3rd field or the 5th (if the label has been modified)
+        nf=`echo $line | wc -w`
+       val=`echo $line | cut -d" " -f$nf | sed -e "s/\"//g" `
+       echo $val
+      ;;
+esac
+

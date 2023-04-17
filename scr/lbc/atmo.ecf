@@ -1,0 +1,152 @@
+@manual
+NOTE: this task version currently unmaintained.
+This task prepares the LBCs (boundary conditions) for the forecast.
+
+If this task fails, first check whether it is due to missing input.
+If so, the matter must first be solved in the LBC retrieval.
+
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+set -x
+umask 0022
+
+#   For non-realtime suites, a single task may be more efficient.
+#   For operational tasks, this may still be the case unless the forecast runs
+#      faster than the LBC creation.
+
+NAMELIST="$( for nn in $NAMELIST_PREP ; do echo ${d_NAMELIST}/$nn ; done )"
+
+[ -e $d_COUPLING ] || mkdir -p $d_COUPLING
+cd $d_COUPLING
+rm -f image* ICMSH*
+
+# at intermediate cycles, we /may/ be using lagged LBC's
+
+# if RR is not [00, 06, 12, 18] we must add a lag!
+LBC_LAG=$(( 10#$RR % 6 ))
+
+LBCDATE=`dateincr -h $RUNDATE -$LBC_LAG`
+LDAY=`echo $LBCDATE | cut -c 1-8`
+LRR=`echo $LBCDATE | cut -c 9-10`
+
+# LBC retrieval uses functions that are be defined
+# in settings_local.h
+if [[ $REALTIME == yes && $DELAY == no ]] ; then
+  for hh in $(seq -f%02g 0 ${LBC_INC} $HOURRANGE) ; do
+    lbc_hh=$(printf -f%02g $(( 10#$hh + 10#$LBC_LAG )) )
+    get_lbc_realtime $COUPLING $LBCDATE $lbc_hh $LBC_TEMPLATE$lbc_hh
+  done
+else
+  # archived data is in a tar file (I presume)
+  # we suppose (for now) that it uses the correct LBC_TEMPLATE
+  get_lbc_archived $COUPLING $LBCDATE 
+fi
+
+CLIM_IN=${d_CLIM}/${COUPLING_DOMAIN}_
+CLIM_OUT=${d_CLIM}/${DOMAIN}_
+
+export DR_HOOK_NOT_MPI=
+# loop over hours
+# NOTE: with 3h coupling, you need the 12h LBC for a 10h forecast!
+#       so in this routine, we extend HOURRANGE if necessary.
+if (( $HOURRANGE % $LBC_INC != 0 )) ; then
+  HOURRANGE=$(( $HOURRANGE + $LBC_INC ))
+fi
+
+
+for hh in $(seq -f%02g 0 ${LBC_INC} $HOURRANGE ); do
+  # prepare directory
+  WDIR=${d_LBC}/${hh}/
+  mkdir -p ${WDIR}
+  rm -f $WDIR/* 2>/dev/null
+  cd ${WDIR}
+ 
+  # Bring coupling file
+  # for intermediate cycles: lagged files!
+  hhc=$(printf %02g $(( 10#$hh + 10#$LBC_LAG )) )
+  # check that the file exists!
+  # if not, wait a while
+  # but we must also check the internal date
+  OK=0
+  while [[ $OK == 0 ]] ; do
+    if [[ -e ${LBC_TEMPLATE}$hhc ]] ; then
+      file_date=$(fa_validdate  ${LBC_TEMPLATE}$hhc)
+      valid_date=`dateincr -h $RUNDATE +$hh`
+      echo $file_date  $RUNDATE  +$hh
+      if [[ $file_date == $valid_date ]] ; then
+        OK=1
+      else
+        echo ERROR: ${LBC_TEMPLATE}$hhc has wrong date!
+        echo Expecting $valid_date, but file has $file_date `date -u +%Y%m%d-%H:%M:%S`
+        ERROR
+      fi
+    else
+      echo ${LBC_TEMPLATE}$hhc not yet available `date -u +%Y%m%d-%H:%M:%S`
+#      sleep 30
+      ERROR
+    fi
+  done
+
+  ln -sf ${LBC_TEMPLATE}$hhc ICMSH${CNMEXP}INIT
+
+  # Bring climate files
+
+  VDATE=`dateincr -h $RUNDATE +$hh`
+  MM2=`echo $VDATE | cut -c 5-6`
+  ln -sf ${CLIM_IN}$MM2 Const.Clim
+  ln -sf ${CLIM_OUT}$MM2 const.clim.${DOMAIN}
+  
+  # Bring rrtm data
+  ln -sf ${DATADIR_RUNTIME}/* .
+  # RADRRTM (RADSRTM MCICA not really needed)
+  
+  # Create namelist file
+  # at 00h in downscaling mode, make sure we also have ISBA fields
+  # These are (may be) indicated by lines starting with !00
+  if [[ $hh = '00' && (${ASSIMILATION:-no} = 'no' || ${COLDSTART:0} = $RUNDATE ) ]] ; then 
+    h0="" 
+  else
+    h0="!"
+  fi
+
+  cat ${NAMELIST} | sed -e "s/^!00/${h0}/" | grep -v '^!' | sed \
+    -e "s/!.*//"  \
+    -e "s/NPROC=.*/NPROC=$NPROC/" \
+    -e "s/NPRGPNS=.*/NPRGPNS=$NPRGPNS/" \
+    -e "s/NPRGPEW=.*/NPRGPEW=$NPRGPEW/" \
+    -e "s/NPRTRV=.*/NPRTRV=$NPRTRV/" \
+    -e "s/NPRTRW=.*/NPRTRW=$NPRTRW/" \
+    -e "s/NSTRIN=.*/NSTRIN=$NPROC/" \
+    -e "s/NSTROUT=.*/NSTROUT=$NPROC/" \
+    -e "s/CNMEXP=.*/CNMEXP=$CNMEXP/"  \
+    -e "s/CFPDOM(1)=.*/CFPDOM(1)=$DOMAIN/"  \
+    -e "s/NRFP3S=.*/NRFP3S=$(seq -s, 1 1 $NLEVELS)/" \
+  > fort.4
+
+  # run
+  ln -sf ${d_BIN}/MASTERODB .
+#  /usr/bin/time mpiexec_mpt omplace ./MASTERODB >out.log 2>err.log
+  $MPIRUN ./MASTERODB >out.log 2>err.log || true
+  # check outcome
+  if [[ ! -f PF${CNMEXP}${DOMAIN}+0000 ]]; then
+    echo "E927 to ${DOMAIN} for hour ${hh} failed."
+    exit 1
+  fi
+  NLBC=$(printf %03g $(( 10#$hh / LBC_INC )))
+  mv PF${CNMEXP}${DOMAIN}+0000 ${d_LBC}/ELSCF${CNMEXP}ALBC$NLBC
+ 
+  rm -f drhook.prof.* 
+  ecflow_client --meter lbc_counter $hh
+
+done
+
+# clean-up
+# no cleaning needed in real-time
+# we can do it at the end of the cycle
+
+@include <tail.h>
+

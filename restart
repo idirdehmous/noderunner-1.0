@@ -1,0 +1,77 @@
+#! /bin/bash
+
+singlerun=no
+unset ENDDATE
+
+while getopts sh opt ; do
+  case $opt in
+    s) singlerun=yes ;;
+    h) echo "restart [-s] YYYYMMDDRR [YYYYMMDDRR]"
+       echo "   -s for single run"
+       echo "   optional: 2nd date for last run"
+       exit ;;
+#    e) ENDDATE=$OPTARG ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+RUNDATE=${1:-`date --utc +%Y%m%d`00}
+if [[ ${#RUNDATE} != 10 ]] ; then
+  echo "Bad input date"
+  echo "RUNDATE must be YYYYMMDDRR !"
+  exit 1
+fi
+
+if [[ $singlerun == yes ]] ; then
+  ENDDATE=$RUNDATE
+else
+  # if there is no 2nd argument, this is just ""
+  ENDDATE=$2
+  if [[ $ENDDATE && ${#ENDDATE} != 10 ]] ; then
+    echo "Bad end date"
+    echo "ENDDATE (if provided) must be YYYYMMDDRR !"
+    exit 1
+  fi
+fi
+
+RR=`echo $RUNDATE | cut -c 9-10`
+YMD=`echo $RUNDATE | cut -c 1-8`
+SUITE=$(basename `pwd`)
+echo "  Restarting suite $SUITE for $RUNDATE"
+if [[ $ENDDATE ]] ; then
+  echo "  *** ENDDATE = $ENDDATE"
+fi
+
+# figure out the NAME of the cycle (e.g. 00 -> midnight ?)
+cycle_inc=`bin/ecf_node_query /${SUITE}:CYCLE_INC`
+ln=$(( 1 + 10#$RR / $cycle_inc ))
+cycle_line=`ecflow_client --group="get=/$SUITE/cycle ; show " | grep "^    family" | head -n $ln | tail -n 1 `
+cycle_name=`echo $cycle_line | cut -d" " -f2`
+echo "  *** cycle_label : $cycle_name"
+## FIRST: reset all forecast times to defstatus=complete
+## should we set all other cycle to complete? may create zombies...
+## even killing everything is not 100% secure: submitted jobs in HPC queue may not be killed
+#ecflow_client complete recursive /$SUITE
+#for hh in $(seq -f%02g 0 3 21) ; do
+# ecflow_client --alter=change defstatus complete /$SUITE/cycle/$hh
+#done
+ecflow_client --alter=change label LAST_QUEUED "$RUNDATE" /$SUITE
+ecflow_client --alter=change variable LAST_QUEUED "$RUNDATE" /$SUITE
+ecflow_client --alter=change defstatus queued /$SUITE/cycle/$cycle_name
+ecflow_client --alter=change variable YMD $YMD /$SUITE/cycle/$cycle_name
+ecflow_client --requeue /$SUITE/cycle/$cycle_name
+ecflow_client --alter=change label RUNDATE $RUNDATE /$SUITE/cycle/$cycle_name
+# it may not "take off" yet: you may need to set previous save_firstguess
+# or remove triggers for the "initialisation" family
+# this should probably be done manually
+# ecflow_client --force=complete recursive /$SUITE/cycle/$run/wait
+# ecflow_client --free-dep=all /$SUITE/cycle/$run/initialisation
+
+if [[ $ENDDATE ]] ; then
+  # if the variable does not exist yet, we have to add it
+  # this may still print an error message, but it actually works OK
+  ecflow_client --alter=change variable "ENDDATE" "$ENDDATE" /$SUITE > /dev/null 2>&1 || {
+    echo "==> Adding ENDDATE variable to suite."
+    ecflow_client --alter=add variable "ENDDATE" "$ENDDATE" /$SUITE
+  }
+fi

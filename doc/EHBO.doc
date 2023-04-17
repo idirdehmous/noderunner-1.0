@@ -1,0 +1,33 @@
+Emergency Response
+++++++++++++++++++
+
+Here is a quick overview of what to do if the operational NodeRunner cycle fails.
+
+1) Simply restarting a failed task will only work if the operational reservation is still available. If it isn't, the job can not be queued, so you will get an error very quickly.
+
+SOLUTION: first re-run inititalisation/init_reservation
+
+That will reset teh queue for the current cycle. If there is no operational reservation available, it will be set to "short".
+
+2)
+
+
+
+
+
+DELAY mode
+++++++++++
+
+The operational cycle can be set (manually or automatically) into "delay" mode. This has a limited number of significant effects:
+1. The "wait" tasks are skipped. The suite no longer waits for a time trigger or another suite.
+2. The LBC's are retrieved from archive, not from the operational scratch or AFD.
+3. The init_reservation task will always default to the "short" queue, even if a operational reservation available. This is because delayed forecasts could confuse other triggers (e.g. in the non-NodeRunner suites) and "hijack" the operational reservation of the other (non-delayed) models. 
+
+If you want a delayed forecast to run in the operational reservation (or some emergency queue), you should set the HPC_QUEUE variable manually (and not re-run init_reservation).
+
+You can set this switch manually by turning the "DELAY" switch on. It can also be done automatically, but that is not (yet?) failsafe. After all, if a cycle is waiting for a particular time to start, it will not do anything. But if you manually remove the time dependency to start the cycle, the init_forecast task will detect the delay and set the switch.
+
+Normally, that last task will also notice if the "delay" is no longer needed, and turn off the switch automatically. However, this can (currently) sometimes go wrong. If "delay" is turned off but the next cycle is queued even a few seconds too late for its time trigger, the suite will be stalled. That requires a little extra care, I know.
+
+
+

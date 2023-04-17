@@ -1,0 +1,60 @@
+@manual
+This tasks prepares the labels and date variables for the forecast.
+It also checks whether we are still running in time.
+
+Not sure how this task could fail (only ecflow_client commands). Check if the suite was restarted manually with a bad date string.
+
+@end
+@include <head.h>
+@include <settings.h>
+
+set -x
+
+# (re-)set the cycle date label
+ecflow_client --alter=change label LAST_RUNNING "$RUNDATE" /@SUITE@
+ecflow_client --alter=change label RUNDATE "$RUNDATE" /@SUITE@/cycle/@THIS_RUN@/
+
+# for realtime suite:
+#   check date & time
+# Basically, when this task is running, any time trigger has been either fulfilled or skipped
+#   so we need to check: if we are in "delay" mode: if "now" is /before/ the trigger time
+#   we must definitely unset the "delay" switch.
+# On the other hand, if "now" is later than RUNDATE+6, we are definitely in delay.
+
+      # NOTE: we can set "delay" automatically, but setting it off is harder
+      # because jobs can be triggered in advance, so you need to turn it off in time!
+
+# the most important part is to make sure we don't "miss" time triggers.
+# if a job is triggered a bit too soon, that usually won't matter so much
+#   because it will wait for the first_guess anyway.
+#   And we can also have triggering by other models, which keeps us in sync as long as we stay close.
+
+if [[ @REALTIME@ == yes && @DELAY_MODE:no@ == yes ]] ; then
+  if [[ @DELAY:no@ == no ]] ; then
+    if [[ $(date -u -d "now -10 hours" +%Y%m%d%H) -ge $RUNDATE ]] ; then
+      echo RUNDATE out of sync: running $RUNDATE on $(date -u +%Y%m%d%H)
+      ecflow_client --force=set /@SUITE@:DELAY 
+    fi
+  else
+    # if we are less than ~7h behind the current forecast date, we are no longer in "delay"
+    if [[ $(date -u -d "now -6 hours" +%Y%m%d%H) -le $RUNDATE ]] ; then
+      echo RUNDATE back in sync
+      ecflow_client --force=clear /@SUITE@:DELAY
+    fi
+  fi
+fi
+
+if [[ $ASSIMILATION == yes ]] ; then
+  CYCLEPATH=$(dirname /@SUITE@/@FAMILY@)
+  if [[ $RUNDATE == $COLDSTART ]] ; then
+    # we don't run assimilation on the cold start data (it may fail)
+    ecflow_client --force=complete recursive ${CYCLEPATH}/assimilation
+    # 
+  elif [[ $SURFACE == surfex ]] ; then
+    # if it isn't a cold start, no need to run prep_sfx
+    ecflow_client --force=complete recursive ${CYCLEPATH}/lbc/prep_sfx
+  fi
+fi
+
+@include <tail.h>
+

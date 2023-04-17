@@ -1,0 +1,27 @@
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+
+set -x
+umask 0022
+# The 00h LBC is considered a first version of 3d field "analysis"
+# As long as we don't have 3d-Var, this is all we need to do
+cp ${d_LBC}/ELSCF${CNMEXP}ALBC000 ${d_GUESS}/analysis
+
+## is there also a first guess (necessary for CANARI cycle)
+#if [[ ! -e ${d_GUESS}/first_guess ]] ; then
+#  echo "No FIRST GUESS !"
+#  if [[ -e ${d_GUESS}/COLDSTART ]] ; then
+#    echo COLDSTART!
+##    ln -sf ${d_GUESS}/analysis ${d_GUESS}/first_guess
+#  else
+#    exit 1
+#  fi
+#else
+#  echo "First Guess found at ${d_GUESS}/first_guess"
+#fi
+
+# make sure the file is really physically copied before triggering forecast:
+sync
+
+@include <tail.h>

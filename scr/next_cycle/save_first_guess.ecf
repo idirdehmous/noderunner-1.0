@@ -1,0 +1,57 @@
+#!/bin/bash
+@manual
+This task saves the first guess (usually the +3h forecast) to a temporary directory for the next cycle.
+
+If this job fails, first re-run once (it may be due to file system latency on the HPC). If it still fails:
+  - has the forecast run correctly?
+  - is the $SCRATCH directory full?
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+set -x
+
+# which hour are we handling (at least CYCLE_INC, maybe others too)
+# this could be "09", so be careful!
+# in "printf" adding "10#" doesn't work, so you mmust strip the leading 0: ${hh#0}
+hh=@FAMILY1@
+
+# save first guess for next cycle
+d_NEXT=${d_CYCLE}/$(date -u -d "$YYYY$MM$DD $RR +$hh hours" +"%Y/%m/%d/%H")
+
+mkdir -p ${d_NEXT}
+if [[ $NPROC_IO -gt 0 ]] ; then
+  WDIR=${WORKDIR}/gather_io
+  mkdir -p $WDIR
+  cd $WDIR
+  if [[ $SURFACE == "surfex" ]] ; then
+      ${d_BIN}/lfitools facat all \
+      ${d_FC}/ICMSH${CNMEXP}+00${hh}.sfx  \
+      ${d_FC}/io_serv.000*/ICMSH${CNMEXP}+00${hh}.sfx \
+      ICMSH${CNMEXP}+00${hh}.sfx.tot
+      cp -f ICMSH${CNMEXP}+$(printf %04d ${hh#0} ).sfx.tot ${d_NEXT}/first_guess_sfx
+  fi
+
+
+      ${d_BIN}/lfitools facat all \
+      ${d_FC}/io_serv.0000*/ICMSH${CNMEXP}+00${hh}.gridall \
+      ${d_FC}/io_serv.0000*/ICMSH${CNMEXP}+00${hh}.speca.???? \
+      ICMSH${CNMEXP}+00${hh}.tot
+      
+      cp ICMSH${CNMEXP}+$(printf %04d ${hh#0} ).tot ${d_NEXT}/first_guess
+else # no IO_SERVER
+ 
+   if [[ $SURFACE == "surfex" ]] ; then
+      cp -f ${d_FC}/ICMSH${CNMEXP}+$(printf %04d ${hh#0} ).sfx ${d_NEXT}/first_guess_sfx
+   fi
+      cp ${d_FC}/ICMSH${CNMEXP}+$(printf %04d ${hh#0} ) ${d_NEXT}/first_guess
+fi
+
+## check whether we use the "copy_Ts" task:
+if [[ -e $WORKDIR/canari_Ts/$hh/first_guess_Ts_ISBA ]] ; then
+  cp $WORKDIR/canari_Ts/$hh/first_guess_Ts_ISBA ${d_NEXT}/first_guess
+fi
+
+@include <tail.h>

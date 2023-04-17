@@ -1,0 +1,85 @@
+#!/bin/bash 
+@manual
+3dVar
+@end
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+@include <settings_odb.h>
+
+# WORKING DIRECTORY 
+mkdir -p  ${d_3DVAR}
+cd ${d_3DVAR}
+rm -rf *
+
+# BINARIES 
+ln -sf ${d_BIN}/MASTERODB    MASTERODB
+ln -sf ${d_BIN}/ioassign     ioassign 
+
+# CONSTANT FILES
+cp -f ${DATADIR_RUNTIME}/RADRRTM .
+cp -f ${DATADIR_RUNTIME}/ECOZC .
+cp -f ${d_ETC}/errgrib .
+cp -f ${d_ETC}/amv_p_and_tracking_error . 
+
+# FIXME: make sure you use the /right/ input file!
+#        e.g. after surface assimilation
+f_guess=${d_GUESS}/first_guess_canari
+ln -sf  $f_guess ICMRFMINI0000
+ln -sf  $f_guess ICMSHMINIINIT
+ln -sf  $f_guess ICMSHMINIIMIN
+# do we want e.g. NH fields from FG in the analysis directly?
+cp ICMRFMINI0000 MXMINI999+0000
+
+
+# NAMELIST 
+NAMELIST="$( for nn in $NAMELIST_MINIM ; do echo ${d_NAMELIST}/$nn ; done )"
+cat ${NAMELIST} | \
+  sed -e "s/NPROC=.*/NPROC=$NPROC/"   \
+  -e "s/NPRGPNS=.*/NPRGPNS=$NPRGPNS/" \
+  -e "s/NPRGPEW=.*/NPRGPEW=$NPRGPEW/" \
+  -e "s/NPRTRV=.*/NPRTRV=$NPRTRV/"    \
+  -e "s/NPRTRW=.*/NPRTRW=$NPRTRW/"    \
+  -e "s/NSTRIN=.*/NSTRIN=$NPROC/"     \
+  -e "s/NSTROUT=.*/NSTROUT=$NPROC/"   \
+      > fort.4 
+
+# GET THE ODB (CCMA FORMAT)
+cp  -f    ${d_ODB}/CCMA_${RUNDATE}.tar     CCMA_minim.tar
+tar -xvf CCMA_minim.tar
+
+
+# ENVIRONNMENT ODB CCMA 
+export ODB_CCMA_CREATE_DIRECT=1
+export ODB_CCMA_LEFT_MARGIN=-180
+export ODB_CCMA_RIGHT_MARGIN=180
+export ODB_CCMA_WTMETHOD=107
+export NPES_CCMA=$NPROC
+export SWAPP_ODB_IOASSIGN=ioassign
+export ODB_CMA=CCMA
+export IOASSIGN=${d_3DVAR}/IOASSIGN
+export ODB_SRCPATH_CCMA=${d_3DVAR}/CCMA
+export ODB_DATAPATH_CCMA=${d_3DVAR}/CCMA
+export ODB_CCMA_CREATE_POOLMASK=1
+export ODB_CCMA_POOLMASK_FILE=${d_3DVAR}/var_db/CCMA/CCMA.poolmask
+
+# COPY OF THE NEW IOASSIGN FILE (CREATED IN E002)
+cp -f ${d_3DVAR}/CCMA/IOASSIGN        ${d_3DVAR}/IOASSIGN
+
+# LINK THE BACKGROUND  CROSS-COVARIANCES FILES (B MATRIX )
+ln -sf ${d_JB}/stabbal    stabal96.bal
+ln -sf ${d_JB}/stabcv     stabal96.cv
+
+# RUN 
+$MPIRUN ./MASTERODB    >out.log  2>err.log
+
+# check ...
+
+cp MXMINI999+0000 ${d_GUESS}/analysis
+
+@include <tail.h>
+
+

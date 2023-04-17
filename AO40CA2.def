@@ -1,0 +1,4669 @@
+#5.8.1
+suite AO40CA2
+  edit PLATFORM 'ecmwf_atos'
+  edit HPC_HEADER 'slurm.h'
+  edit ECF_MICRO '@'
+  edit MODE 'exp'
+  edit CYCLE_INC '3'
+  edit ECF_JOB_CMD 'troika submit -o @ECF_JOBOUT@ @HOST@ @ECF_JOB@ '
+  edit ECF_KILL_CMD 'troika kill @HOST@ @ECF_JOB@'
+  edit ECF_STAT_CMD 'troika monitor @HOST@ @ECF_JOB@'
+  edit ECF_USER 'cvah'
+  edit ECF_INCLUDE '/home/cvah/ECF/AO40CA2/include'
+  edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr'
+  edit ECF_HOME '/home/cvah/ECF/AO40CA2/tmp'
+  edit ECF_BINDIR '/home/cvah/ECF/AO40CA2/bin'
+  edit SUITE_DATA '/home/cvah/ECF/AO40CA2/data'
+  edit HOST 'hpc'
+  edit USER '@HPC_USER@'
+  edit ECF_OUT '@HPC_LOGPATH@'
+  edit LOCALJOB 'no'
+  edit NODE_SELECT '@SELECT_SERIAL@'
+  edit WALLTIME '@WALLTIME_SERIAL@'
+  edit MODEL 'alaro'
+  edit SURFACE 'isba'
+  edit DOMAIN 'BE40a_l'
+  edit HYDROSTATIC 'yes'
+  edit DFI 'no'
+  edit TIMESTEP '45'
+  edit NLEVELS '87'
+  edit CNMEXP 'AO40'
+  edit ENV_ALADIN 'ENV_ecmwf_atos'
+  edit NAMELIST_VERSION 'alaro_tuned'
+  edit NAMELIST_TAG 'cy43'
+  edit NAMELIST_FC 'alro_hsis_fcst_cy43.nam namsteps_oper namchk_none namfpc_none'
+  edit NAMELIST_PRE 'alro_hsis_prep_cy46_ec.nam  BE40a_l.87'
+  edit PACKDIR '/ec/res4/hpcperm/cv6/accord/pack/rmi_43t2_bf.11_OMPIIFC2140_EC'
+  edit HPC_HOST 'hpc-login'
+  edit HPC_USER 'cvah'
+  edit SCRATCH '/scratch/@HPC_USER@'
+  edit DATA_PATH '/hpcperm/cvah/nr'
+  edit DPATH_CLIM '@DATA_PATH@/clim/alaro_tuned'
+  edit WALLTIME_CYCLE '90'
+  edit BASEDIR '@SCRATCH@/ECF/@SUITE@'
+  edit HPC_LOGPATH '/home/@HPC_USER@/NR_log'
+  edit NPROC_IO '0'
+  edit ECF_TRIES '1'
+  edit SYNC_SCRATCH 'no'
+  edit COUPLING 'EC'
+  edit COUPLING_DOMAIN 'be13b_l'
+  edit LBC_INC '1'
+  edit CPL_TEMPLATE '/ec/res4/scratch/cv6/LBC/YYYY/MM/DD/RR/ELSCFAO13ALBC0HH'
+  edit SELECT_SERIAL '--qos=np --nodes=16 --ntasks-per-node=8 --cpus-per-task=1 --threads-per-core=1'
+  edit SELECT_RET '--qos=nf --ntasks=24 --cpus-per-task=1 --threads-per-core=1 --mem-per-cpu=2G'
+  edit SELECT_PRE '--qos=np --nodes=32 --ntasks-per-node=16 --cpus-per-task=4 --threads-per-core=1'
+  edit SELECT_POS '--qos=nf --ntasks=24 --cpus-per-task=1 --threads-per-core=1 --mem-per-cpu=2G'
+  edit SELECT_FC '--qos=np --nodes=32 --ntasks-per-node=16 --cpus-per-task=4 --threads-per-core=1 --hint=nomultithread'
+  edit SELECT_BATOR '--qos=nf --ntasks=1 --cpus-per-task=1 --threads-per-core=1 --mem-per-cpu=10G'
+  edit SELECT_CANARI '--qos=np --nodes=32  --ntasks-per-node=8 --cpus-per-task=1 --threads-per-core=1'
+  edit SELECT_MINIM '--ntasks=12 --cpus-per-task=1 --threads-per-core=1 --mem-per-cpu=1G'
+  edit SELECT_SCREENING '--ntasks=12 --cpus-per-task=1 --threads-per-core=1 --mem-per-cpu=1G'
+  edit WALLTIME_SERIAL '0:30:00'
+  edit WALLTIME_FC '0:30:00'
+  edit WALLTIME_RET '10:00:00'
+  edit WALLTIME_PRE '0:15:00'
+  edit WALLTIME_POS '0:05:00'
+  edit WALLTIME_BATOR '0:05:00'
+  edit WALLTIME_CANA '0:05:00'
+  edit WALLTIME_MINIM '0:15:00'
+  edit ASSIMILATION 'yes'
+  edit ASSIM_UPPER 'none'
+  edit ASSIM_SURFACE 'canari'
+  edit OBS_NPOOL '1'
+  edit COLDSTART '2023040100'
+  edit OBSTYPES_SURFACE 'synop'
+  edit OBS_SOURCE 'mars'
+  edit OBS_PATH '/scratch/cv6/OBS/YYYY/MM/DD'
+  edit ODB_ARCH 'False'
+  edit ODB_PATH '/somewhere/ecfs'
+  edit FG_MAX '3'
+  edit REALTIME 'no'
+  edit LAST_QUEUED ''
+  edit THIS_RUN '00'
+  edit PREV_RUN '21'
+  edit NEXT_RUN '03'
+  limit max_postproc 18
+  limit max_init 1
+  limit max_sync 1
+  label LAST_QUEUED ""
+  label LAST_RUNNING ""
+  family init_suite
+    task create_hpc_paths
+      edit HOST 'hpc'
+      edit USER 'cvah'
+      edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+      edit LOCALJOB 'yes'
+      inlimit max_init
+  endfamily
+  family maintenance
+    task cleanup_cycle
+      defstatus complete
+      label LAST_RUN ""
+    task switch_scratch
+      defstatus complete
+      edit HOST 'hpc'
+      edit USER 'cvah'
+      edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+      edit LOCALJOB 'yes'
+      label SCRATCH "@SCRATCH@"
+  endfamily
+  family cycle
+    family 00
+      defstatus complete
+      edit RR '00'
+      edit YMD ''
+      edit RUNDATE '@YMD@@RR@'
+      edit FCLEN '60'
+      edit THIS_RUN '00'
+      edit PREV_RUN '21'
+      edit NEXT_RUN '03'
+      label RUNDATE ""
+      family initialisation
+        trigger ../21/next_cycle/save_first_guess/03 == complete 
+        task init_forecast
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task copy_namelists
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+          inlimit max_init
+        task sync_data
+          inlimit max_init
+        task init_workpaths
+      endfamily
+      family lbc
+        trigger ./initialisation == complete
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/lbc'
+        inlimit max_postproc
+        event LAUNCH_FC
+        event LAUNCH_00
+        task retrieve_lbc
+          edit WALLTIME '@WALLTIME_RET@'
+          meter lbc_counter -1 60 60
+        task prep_lbc
+          trigger retrieve_lbc == complete
+          edit WALLTIME '@WALLTIME_PRE@'
+          edit NODE_SELECT '@SELECT_PRE@'
+          meter lbc_counter -1 60 60
+      endfamily
+      family assimilation
+        trigger ./initialisation == complete
+        edit NODE_SELECT '@SELECT_SERIAL@'
+        edit WALLTIME '@WALLTIME_SERIAL@'
+        task check_first_guess
+        family surface
+          trigger ./check_first_guess == complete
+          edit OBSTYPES '@OBSTYPES_SURFACE@'
+          edit ASSIM_LABEL 'surface'
+          task get_obs
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task bator
+            trigger ./get_obs == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+            edit NODE_SELECT '@SELECT_BATOR@'
+            edit WALLTIME '@WALLTIME_BATOR@'
+          task odb_merge
+            trigger ./bator == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task sst_update
+            trigger (../../lbc == complete or ../../lbc:LAUNCH_00 == set)
+          task canari
+            trigger ./odb_merge == complete and ./sst_update == complete
+            edit NODE_SELECT '@SELECT_CANARI@'
+        endfamily
+        family upper_air
+          trigger ./surface == complete
+          task copy_soil
+            edit NODE_SELECT '@SELECT_POS@'
+            edit WALLTIME '@WALLTIME_POS@'
+        endfamily
+        task archive_assim
+          trigger ./surface == complete && ./upper_air == complete
+      endfamily
+      family forecast
+        trigger (./lbc == complete or ./lbc:LAUNCH_FC == set) && ./assimilation == complete 
+        task integration
+          edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/forecast'
+          edit NODE_SELECT '@SELECT_FC@'
+          edit WALLTIME '@WALLTIME_FC@'
+        task monitor
+          trigger ./integration == active || ./integration == complete
+          edit NODE_SELECT '@SELECT_SERIAL@'
+          edit WALLTIME '@WALLTIME_FC@'
+          meter forecast_counter -1 60 60
+      endfamily
+      family next_cycle
+        task queue_next
+          complete /AO40CA2/cycle/03 == active and (100 * /AO40CA2/cycle/03:YMD + /AO40CA2/cycle/03:RR > 100 * :YMD + :RR)
+          trigger ../initialisation == complete && /AO40CA2/cycle/03 == complete
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        family save_first_guess
+          family 03
+            trigger ../../forecast/monitor:forecast_counter >= 3
+            edit WALLTIME '00:05:00'
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/next_cycle'
+            task save_first_guess
+          endfamily
+        endfamily
+      endfamily
+      family post
+        trigger ./forecast/integration == complete or ./forecast/integration == active
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/post'
+        family 01
+          trigger ../forecast/monitor:forecast_counter >= 1
+          edit PPHH '01'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 02
+          trigger ../forecast/monitor:forecast_counter >= 2
+          edit PPHH '02'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 03
+          trigger ../forecast/monitor:forecast_counter >= 3
+          edit PPHH '03'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 04
+          trigger ../forecast/monitor:forecast_counter >= 4
+          edit PPHH '04'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 05
+          trigger ../forecast/monitor:forecast_counter >= 5
+          edit PPHH '05'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 06
+          trigger ../forecast/monitor:forecast_counter >= 6
+          edit PPHH '06'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 07
+          trigger ../forecast/monitor:forecast_counter >= 7
+          edit PPHH '07'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 08
+          trigger ../forecast/monitor:forecast_counter >= 8
+          edit PPHH '08'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 09
+          trigger ../forecast/monitor:forecast_counter >= 9
+          edit PPHH '09'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 10
+          trigger ../forecast/monitor:forecast_counter >= 10
+          edit PPHH '10'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 11
+          trigger ../forecast/monitor:forecast_counter >= 11
+          edit PPHH '11'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 12
+          trigger ../forecast/monitor:forecast_counter >= 12
+          edit PPHH '12'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 13
+          trigger ../forecast/monitor:forecast_counter >= 13
+          edit PPHH '13'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 14
+          trigger ../forecast/monitor:forecast_counter >= 14
+          edit PPHH '14'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 15
+          trigger ../forecast/monitor:forecast_counter >= 15
+          edit PPHH '15'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 16
+          trigger ../forecast/monitor:forecast_counter >= 16
+          edit PPHH '16'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 17
+          trigger ../forecast/monitor:forecast_counter >= 17
+          edit PPHH '17'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 18
+          trigger ../forecast/monitor:forecast_counter >= 18
+          edit PPHH '18'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 19
+          trigger ../forecast/monitor:forecast_counter >= 19
+          edit PPHH '19'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 20
+          trigger ../forecast/monitor:forecast_counter >= 20
+          edit PPHH '20'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 21
+          trigger ../forecast/monitor:forecast_counter >= 21
+          edit PPHH '21'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 22
+          trigger ../forecast/monitor:forecast_counter >= 22
+          edit PPHH '22'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 23
+          trigger ../forecast/monitor:forecast_counter >= 23
+          edit PPHH '23'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 24
+          trigger ../forecast/monitor:forecast_counter >= 24
+          edit PPHH '24'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 25
+          trigger ../forecast/monitor:forecast_counter >= 25
+          edit PPHH '25'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 26
+          trigger ../forecast/monitor:forecast_counter >= 26
+          edit PPHH '26'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 27
+          trigger ../forecast/monitor:forecast_counter >= 27
+          edit PPHH '27'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 28
+          trigger ../forecast/monitor:forecast_counter >= 28
+          edit PPHH '28'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 29
+          trigger ../forecast/monitor:forecast_counter >= 29
+          edit PPHH '29'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 30
+          trigger ../forecast/monitor:forecast_counter >= 30
+          edit PPHH '30'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 31
+          trigger ../forecast/monitor:forecast_counter >= 31
+          edit PPHH '31'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 32
+          trigger ../forecast/monitor:forecast_counter >= 32
+          edit PPHH '32'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 33
+          trigger ../forecast/monitor:forecast_counter >= 33
+          edit PPHH '33'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 34
+          trigger ../forecast/monitor:forecast_counter >= 34
+          edit PPHH '34'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 35
+          trigger ../forecast/monitor:forecast_counter >= 35
+          edit PPHH '35'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 36
+          trigger ../forecast/monitor:forecast_counter >= 36
+          edit PPHH '36'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 37
+          trigger ../forecast/monitor:forecast_counter >= 37
+          edit PPHH '37'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 38
+          trigger ../forecast/monitor:forecast_counter >= 38
+          edit PPHH '38'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 39
+          trigger ../forecast/monitor:forecast_counter >= 39
+          edit PPHH '39'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 40
+          trigger ../forecast/monitor:forecast_counter >= 40
+          edit PPHH '40'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 41
+          trigger ../forecast/monitor:forecast_counter >= 41
+          edit PPHH '41'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 42
+          trigger ../forecast/monitor:forecast_counter >= 42
+          edit PPHH '42'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 43
+          trigger ../forecast/monitor:forecast_counter >= 43
+          edit PPHH '43'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 44
+          trigger ../forecast/monitor:forecast_counter >= 44
+          edit PPHH '44'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 45
+          trigger ../forecast/monitor:forecast_counter >= 45
+          edit PPHH '45'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 46
+          trigger ../forecast/monitor:forecast_counter >= 46
+          edit PPHH '46'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 47
+          trigger ../forecast/monitor:forecast_counter >= 47
+          edit PPHH '47'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 48
+          trigger ../forecast/monitor:forecast_counter >= 48
+          edit PPHH '48'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 49
+          trigger ../forecast/monitor:forecast_counter >= 49
+          edit PPHH '49'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 50
+          trigger ../forecast/monitor:forecast_counter >= 50
+          edit PPHH '50'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 51
+          trigger ../forecast/monitor:forecast_counter >= 51
+          edit PPHH '51'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 52
+          trigger ../forecast/monitor:forecast_counter >= 52
+          edit PPHH '52'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 53
+          trigger ../forecast/monitor:forecast_counter >= 53
+          edit PPHH '53'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 54
+          trigger ../forecast/monitor:forecast_counter >= 54
+          edit PPHH '54'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 55
+          trigger ../forecast/monitor:forecast_counter >= 55
+          edit PPHH '55'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 56
+          trigger ../forecast/monitor:forecast_counter >= 56
+          edit PPHH '56'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 57
+          trigger ../forecast/monitor:forecast_counter >= 57
+          edit PPHH '57'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 58
+          trigger ../forecast/monitor:forecast_counter >= 58
+          edit PPHH '58'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 59
+          trigger ../forecast/monitor:forecast_counter >= 59
+          edit PPHH '59'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 60
+          trigger ../forecast/monitor:forecast_counter >= 60
+          edit PPHH '60'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+      endfamily
+      family finish
+        trigger ./forecast == complete
+        trigger -a ./post == complete
+        task cleanup
+        task set_defstatus
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task cycle_data_update
+          inlimit max_sync
+      endfamily
+    endfamily
+    family 03
+      defstatus complete
+      edit RR '03'
+      edit YMD ''
+      edit RUNDATE '@YMD@@RR@'
+      edit FCLEN '3'
+      edit THIS_RUN '03'
+      edit PREV_RUN '00'
+      edit NEXT_RUN '06'
+      label RUNDATE ""
+      family initialisation
+        trigger ../00/next_cycle/save_first_guess/03 == complete 
+        task init_forecast
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task copy_namelists
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+          inlimit max_init
+        task sync_data
+          inlimit max_init
+        task init_workpaths
+      endfamily
+      family lbc
+        trigger ./initialisation == complete
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/lbc'
+        inlimit max_postproc
+        event LAUNCH_FC
+        event LAUNCH_00
+        task retrieve_lbc
+          edit WALLTIME '@WALLTIME_RET@'
+          meter lbc_counter -1 3 3
+        task prep_lbc
+          trigger retrieve_lbc == complete
+          edit WALLTIME '@WALLTIME_PRE@'
+          edit NODE_SELECT '@SELECT_PRE@'
+          meter lbc_counter -1 3 3
+      endfamily
+      family assimilation
+        trigger ./initialisation == complete
+        edit NODE_SELECT '@SELECT_SERIAL@'
+        edit WALLTIME '@WALLTIME_SERIAL@'
+        task check_first_guess
+        family surface
+          trigger ./check_first_guess == complete
+          edit OBSTYPES '@OBSTYPES_SURFACE@'
+          edit ASSIM_LABEL 'surface'
+          task get_obs
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task bator
+            trigger ./get_obs == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+            edit NODE_SELECT '@SELECT_BATOR@'
+            edit WALLTIME '@WALLTIME_BATOR@'
+          task odb_merge
+            trigger ./bator == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task sst_update
+            trigger (../../lbc == complete or ../../lbc:LAUNCH_00 == set)
+          task canari
+            trigger ./odb_merge == complete and ./sst_update == complete
+            edit NODE_SELECT '@SELECT_CANARI@'
+        endfamily
+        family upper_air
+          trigger ./surface == complete
+          task copy_soil
+            edit NODE_SELECT '@SELECT_POS@'
+            edit WALLTIME '@WALLTIME_POS@'
+        endfamily
+        task archive_assim
+          trigger ./surface == complete && ./upper_air == complete
+      endfamily
+      family forecast
+        trigger (./lbc == complete or ./lbc:LAUNCH_FC == set) && ./assimilation == complete 
+        task integration
+          edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/forecast'
+          edit NODE_SELECT '@SELECT_FC@'
+          edit WALLTIME '@WALLTIME_FC@'
+        task monitor
+          trigger ./integration == active || ./integration == complete
+          edit NODE_SELECT '@SELECT_SERIAL@'
+          edit WALLTIME '@WALLTIME_FC@'
+          meter forecast_counter -1 3 3
+      endfamily
+      family next_cycle
+        task queue_next
+          complete /AO40CA2/cycle/06 == active and (100 * /AO40CA2/cycle/06:YMD + /AO40CA2/cycle/06:RR > 100 * :YMD + :RR)
+          trigger ../initialisation == complete && /AO40CA2/cycle/06 == complete
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        family save_first_guess
+          family 03
+            trigger ../../forecast/monitor:forecast_counter >= 3
+            edit WALLTIME '00:05:00'
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/next_cycle'
+            task save_first_guess
+          endfamily
+        endfamily
+      endfamily
+      family finish
+        trigger ./forecast == complete
+        task cleanup
+        task set_defstatus
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task cycle_data_update
+          inlimit max_sync
+      endfamily
+    endfamily
+    family 06
+      defstatus complete
+      edit RR '06'
+      edit YMD ''
+      edit RUNDATE '@YMD@@RR@'
+      edit FCLEN '60'
+      edit THIS_RUN '06'
+      edit PREV_RUN '03'
+      edit NEXT_RUN '09'
+      label RUNDATE ""
+      family initialisation
+        trigger ../03/next_cycle/save_first_guess/03 == complete 
+        task init_forecast
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task copy_namelists
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+          inlimit max_init
+        task sync_data
+          inlimit max_init
+        task init_workpaths
+      endfamily
+      family lbc
+        trigger ./initialisation == complete
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/lbc'
+        inlimit max_postproc
+        event LAUNCH_FC
+        event LAUNCH_00
+        task retrieve_lbc
+          edit WALLTIME '@WALLTIME_RET@'
+          meter lbc_counter -1 60 60
+        task prep_lbc
+          trigger retrieve_lbc == complete
+          edit WALLTIME '@WALLTIME_PRE@'
+          edit NODE_SELECT '@SELECT_PRE@'
+          meter lbc_counter -1 60 60
+      endfamily
+      family assimilation
+        trigger ./initialisation == complete
+        edit NODE_SELECT '@SELECT_SERIAL@'
+        edit WALLTIME '@WALLTIME_SERIAL@'
+        task check_first_guess
+        family surface
+          trigger ./check_first_guess == complete
+          edit OBSTYPES '@OBSTYPES_SURFACE@'
+          edit ASSIM_LABEL 'surface'
+          task get_obs
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task bator
+            trigger ./get_obs == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+            edit NODE_SELECT '@SELECT_BATOR@'
+            edit WALLTIME '@WALLTIME_BATOR@'
+          task odb_merge
+            trigger ./bator == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task sst_update
+            trigger (../../lbc == complete or ../../lbc:LAUNCH_00 == set)
+          task canari
+            trigger ./odb_merge == complete and ./sst_update == complete
+            edit NODE_SELECT '@SELECT_CANARI@'
+        endfamily
+        family upper_air
+          trigger ./surface == complete
+          task copy_soil
+            edit NODE_SELECT '@SELECT_POS@'
+            edit WALLTIME '@WALLTIME_POS@'
+        endfamily
+        task archive_assim
+          trigger ./surface == complete && ./upper_air == complete
+      endfamily
+      family forecast
+        trigger (./lbc == complete or ./lbc:LAUNCH_FC == set) && ./assimilation == complete 
+        task integration
+          edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/forecast'
+          edit NODE_SELECT '@SELECT_FC@'
+          edit WALLTIME '@WALLTIME_FC@'
+        task monitor
+          trigger ./integration == active || ./integration == complete
+          edit NODE_SELECT '@SELECT_SERIAL@'
+          edit WALLTIME '@WALLTIME_FC@'
+          meter forecast_counter -1 60 60
+      endfamily
+      family next_cycle
+        task queue_next
+          complete /AO40CA2/cycle/09 == active and (100 * /AO40CA2/cycle/09:YMD + /AO40CA2/cycle/09:RR > 100 * :YMD + :RR)
+          trigger ../initialisation == complete && /AO40CA2/cycle/09 == complete
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        family save_first_guess
+          family 03
+            trigger ../../forecast/monitor:forecast_counter >= 3
+            edit WALLTIME '00:05:00'
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/next_cycle'
+            task save_first_guess
+          endfamily
+        endfamily
+      endfamily
+      family post
+        trigger ./forecast/integration == complete or ./forecast/integration == active
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/post'
+        family 01
+          trigger ../forecast/monitor:forecast_counter >= 1
+          edit PPHH '01'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 02
+          trigger ../forecast/monitor:forecast_counter >= 2
+          edit PPHH '02'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 03
+          trigger ../forecast/monitor:forecast_counter >= 3
+          edit PPHH '03'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 04
+          trigger ../forecast/monitor:forecast_counter >= 4
+          edit PPHH '04'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 05
+          trigger ../forecast/monitor:forecast_counter >= 5
+          edit PPHH '05'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 06
+          trigger ../forecast/monitor:forecast_counter >= 6
+          edit PPHH '06'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 07
+          trigger ../forecast/monitor:forecast_counter >= 7
+          edit PPHH '07'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 08
+          trigger ../forecast/monitor:forecast_counter >= 8
+          edit PPHH '08'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 09
+          trigger ../forecast/monitor:forecast_counter >= 9
+          edit PPHH '09'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 10
+          trigger ../forecast/monitor:forecast_counter >= 10
+          edit PPHH '10'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 11
+          trigger ../forecast/monitor:forecast_counter >= 11
+          edit PPHH '11'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 12
+          trigger ../forecast/monitor:forecast_counter >= 12
+          edit PPHH '12'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 13
+          trigger ../forecast/monitor:forecast_counter >= 13
+          edit PPHH '13'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 14
+          trigger ../forecast/monitor:forecast_counter >= 14
+          edit PPHH '14'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 15
+          trigger ../forecast/monitor:forecast_counter >= 15
+          edit PPHH '15'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 16
+          trigger ../forecast/monitor:forecast_counter >= 16
+          edit PPHH '16'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 17
+          trigger ../forecast/monitor:forecast_counter >= 17
+          edit PPHH '17'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 18
+          trigger ../forecast/monitor:forecast_counter >= 18
+          edit PPHH '18'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 19
+          trigger ../forecast/monitor:forecast_counter >= 19
+          edit PPHH '19'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 20
+          trigger ../forecast/monitor:forecast_counter >= 20
+          edit PPHH '20'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 21
+          trigger ../forecast/monitor:forecast_counter >= 21
+          edit PPHH '21'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 22
+          trigger ../forecast/monitor:forecast_counter >= 22
+          edit PPHH '22'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 23
+          trigger ../forecast/monitor:forecast_counter >= 23
+          edit PPHH '23'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 24
+          trigger ../forecast/monitor:forecast_counter >= 24
+          edit PPHH '24'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 25
+          trigger ../forecast/monitor:forecast_counter >= 25
+          edit PPHH '25'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 26
+          trigger ../forecast/monitor:forecast_counter >= 26
+          edit PPHH '26'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 27
+          trigger ../forecast/monitor:forecast_counter >= 27
+          edit PPHH '27'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 28
+          trigger ../forecast/monitor:forecast_counter >= 28
+          edit PPHH '28'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 29
+          trigger ../forecast/monitor:forecast_counter >= 29
+          edit PPHH '29'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 30
+          trigger ../forecast/monitor:forecast_counter >= 30
+          edit PPHH '30'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 31
+          trigger ../forecast/monitor:forecast_counter >= 31
+          edit PPHH '31'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 32
+          trigger ../forecast/monitor:forecast_counter >= 32
+          edit PPHH '32'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 33
+          trigger ../forecast/monitor:forecast_counter >= 33
+          edit PPHH '33'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 34
+          trigger ../forecast/monitor:forecast_counter >= 34
+          edit PPHH '34'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 35
+          trigger ../forecast/monitor:forecast_counter >= 35
+          edit PPHH '35'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 36
+          trigger ../forecast/monitor:forecast_counter >= 36
+          edit PPHH '36'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 37
+          trigger ../forecast/monitor:forecast_counter >= 37
+          edit PPHH '37'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 38
+          trigger ../forecast/monitor:forecast_counter >= 38
+          edit PPHH '38'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 39
+          trigger ../forecast/monitor:forecast_counter >= 39
+          edit PPHH '39'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 40
+          trigger ../forecast/monitor:forecast_counter >= 40
+          edit PPHH '40'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 41
+          trigger ../forecast/monitor:forecast_counter >= 41
+          edit PPHH '41'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 42
+          trigger ../forecast/monitor:forecast_counter >= 42
+          edit PPHH '42'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 43
+          trigger ../forecast/monitor:forecast_counter >= 43
+          edit PPHH '43'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 44
+          trigger ../forecast/monitor:forecast_counter >= 44
+          edit PPHH '44'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 45
+          trigger ../forecast/monitor:forecast_counter >= 45
+          edit PPHH '45'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 46
+          trigger ../forecast/monitor:forecast_counter >= 46
+          edit PPHH '46'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 47
+          trigger ../forecast/monitor:forecast_counter >= 47
+          edit PPHH '47'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 48
+          trigger ../forecast/monitor:forecast_counter >= 48
+          edit PPHH '48'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 49
+          trigger ../forecast/monitor:forecast_counter >= 49
+          edit PPHH '49'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 50
+          trigger ../forecast/monitor:forecast_counter >= 50
+          edit PPHH '50'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 51
+          trigger ../forecast/monitor:forecast_counter >= 51
+          edit PPHH '51'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 52
+          trigger ../forecast/monitor:forecast_counter >= 52
+          edit PPHH '52'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 53
+          trigger ../forecast/monitor:forecast_counter >= 53
+          edit PPHH '53'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 54
+          trigger ../forecast/monitor:forecast_counter >= 54
+          edit PPHH '54'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 55
+          trigger ../forecast/monitor:forecast_counter >= 55
+          edit PPHH '55'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 56
+          trigger ../forecast/monitor:forecast_counter >= 56
+          edit PPHH '56'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 57
+          trigger ../forecast/monitor:forecast_counter >= 57
+          edit PPHH '57'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 58
+          trigger ../forecast/monitor:forecast_counter >= 58
+          edit PPHH '58'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 59
+          trigger ../forecast/monitor:forecast_counter >= 59
+          edit PPHH '59'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 60
+          trigger ../forecast/monitor:forecast_counter >= 60
+          edit PPHH '60'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+      endfamily
+      family finish
+        trigger ./forecast == complete
+        trigger -a ./post == complete
+        task cleanup
+        task set_defstatus
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task cycle_data_update
+          inlimit max_sync
+      endfamily
+    endfamily
+    family 09
+      defstatus complete
+      edit RR '09'
+      edit YMD ''
+      edit RUNDATE '@YMD@@RR@'
+      edit FCLEN '3'
+      edit THIS_RUN '09'
+      edit PREV_RUN '06'
+      edit NEXT_RUN '12'
+      label RUNDATE ""
+      family initialisation
+        trigger ../06/next_cycle/save_first_guess/03 == complete 
+        task init_forecast
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task copy_namelists
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+          inlimit max_init
+        task sync_data
+          inlimit max_init
+        task init_workpaths
+      endfamily
+      family lbc
+        trigger ./initialisation == complete
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/lbc'
+        inlimit max_postproc
+        event LAUNCH_FC
+        event LAUNCH_00
+        task retrieve_lbc
+          edit WALLTIME '@WALLTIME_RET@'
+          meter lbc_counter -1 3 3
+        task prep_lbc
+          trigger retrieve_lbc == complete
+          edit WALLTIME '@WALLTIME_PRE@'
+          edit NODE_SELECT '@SELECT_PRE@'
+          meter lbc_counter -1 3 3
+      endfamily
+      family assimilation
+        trigger ./initialisation == complete
+        edit NODE_SELECT '@SELECT_SERIAL@'
+        edit WALLTIME '@WALLTIME_SERIAL@'
+        task check_first_guess
+        family surface
+          trigger ./check_first_guess == complete
+          edit OBSTYPES '@OBSTYPES_SURFACE@'
+          edit ASSIM_LABEL 'surface'
+          task get_obs
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task bator
+            trigger ./get_obs == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+            edit NODE_SELECT '@SELECT_BATOR@'
+            edit WALLTIME '@WALLTIME_BATOR@'
+          task odb_merge
+            trigger ./bator == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task sst_update
+            trigger (../../lbc == complete or ../../lbc:LAUNCH_00 == set)
+          task canari
+            trigger ./odb_merge == complete and ./sst_update == complete
+            edit NODE_SELECT '@SELECT_CANARI@'
+        endfamily
+        family upper_air
+          trigger ./surface == complete
+          task copy_soil
+            edit NODE_SELECT '@SELECT_POS@'
+            edit WALLTIME '@WALLTIME_POS@'
+        endfamily
+        task archive_assim
+          trigger ./surface == complete && ./upper_air == complete
+      endfamily
+      family forecast
+        trigger (./lbc == complete or ./lbc:LAUNCH_FC == set) && ./assimilation == complete 
+        task integration
+          edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/forecast'
+          edit NODE_SELECT '@SELECT_FC@'
+          edit WALLTIME '@WALLTIME_FC@'
+        task monitor
+          trigger ./integration == active || ./integration == complete
+          edit NODE_SELECT '@SELECT_SERIAL@'
+          edit WALLTIME '@WALLTIME_FC@'
+          meter forecast_counter -1 3 3
+      endfamily
+      family next_cycle
+        task queue_next
+          complete /AO40CA2/cycle/12 == active and (100 * /AO40CA2/cycle/12:YMD + /AO40CA2/cycle/12:RR > 100 * :YMD + :RR)
+          trigger ../initialisation == complete && /AO40CA2/cycle/12 == complete
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        family save_first_guess
+          family 03
+            trigger ../../forecast/monitor:forecast_counter >= 3
+            edit WALLTIME '00:05:00'
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/next_cycle'
+            task save_first_guess
+          endfamily
+        endfamily
+      endfamily
+      family finish
+        trigger ./forecast == complete
+        task cleanup
+        task set_defstatus
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task cycle_data_update
+          inlimit max_sync
+      endfamily
+    endfamily
+    family 12
+      defstatus complete
+      edit RR '12'
+      edit YMD ''
+      edit RUNDATE '@YMD@@RR@'
+      edit FCLEN '60'
+      edit THIS_RUN '12'
+      edit PREV_RUN '09'
+      edit NEXT_RUN '15'
+      label RUNDATE ""
+      family initialisation
+        trigger ../09/next_cycle/save_first_guess/03 == complete 
+        task init_forecast
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task copy_namelists
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+          inlimit max_init
+        task sync_data
+          inlimit max_init
+        task init_workpaths
+      endfamily
+      family lbc
+        trigger ./initialisation == complete
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/lbc'
+        inlimit max_postproc
+        event LAUNCH_FC
+        event LAUNCH_00
+        task retrieve_lbc
+          edit WALLTIME '@WALLTIME_RET@'
+          meter lbc_counter -1 60 60
+        task prep_lbc
+          trigger retrieve_lbc == complete
+          edit WALLTIME '@WALLTIME_PRE@'
+          edit NODE_SELECT '@SELECT_PRE@'
+          meter lbc_counter -1 60 60
+      endfamily
+      family assimilation
+        trigger ./initialisation == complete
+        edit NODE_SELECT '@SELECT_SERIAL@'
+        edit WALLTIME '@WALLTIME_SERIAL@'
+        task check_first_guess
+        family surface
+          trigger ./check_first_guess == complete
+          edit OBSTYPES '@OBSTYPES_SURFACE@'
+          edit ASSIM_LABEL 'surface'
+          task get_obs
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task bator
+            trigger ./get_obs == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+            edit NODE_SELECT '@SELECT_BATOR@'
+            edit WALLTIME '@WALLTIME_BATOR@'
+          task odb_merge
+            trigger ./bator == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task sst_update
+            trigger (../../lbc == complete or ../../lbc:LAUNCH_00 == set)
+          task canari
+            trigger ./odb_merge == complete and ./sst_update == complete
+            edit NODE_SELECT '@SELECT_CANARI@'
+        endfamily
+        family upper_air
+          trigger ./surface == complete
+          task copy_soil
+            edit NODE_SELECT '@SELECT_POS@'
+            edit WALLTIME '@WALLTIME_POS@'
+        endfamily
+        task archive_assim
+          trigger ./surface == complete && ./upper_air == complete
+      endfamily
+      family forecast
+        trigger (./lbc == complete or ./lbc:LAUNCH_FC == set) && ./assimilation == complete 
+        task integration
+          edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/forecast'
+          edit NODE_SELECT '@SELECT_FC@'
+          edit WALLTIME '@WALLTIME_FC@'
+        task monitor
+          trigger ./integration == active || ./integration == complete
+          edit NODE_SELECT '@SELECT_SERIAL@'
+          edit WALLTIME '@WALLTIME_FC@'
+          meter forecast_counter -1 60 60
+      endfamily
+      family next_cycle
+        task queue_next
+          complete /AO40CA2/cycle/15 == active and (100 * /AO40CA2/cycle/15:YMD + /AO40CA2/cycle/15:RR > 100 * :YMD + :RR)
+          trigger ../initialisation == complete && /AO40CA2/cycle/15 == complete
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        family save_first_guess
+          family 03
+            trigger ../../forecast/monitor:forecast_counter >= 3
+            edit WALLTIME '00:05:00'
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/next_cycle'
+            task save_first_guess
+          endfamily
+        endfamily
+      endfamily
+      family post
+        trigger ./forecast/integration == complete or ./forecast/integration == active
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/post'
+        family 01
+          trigger ../forecast/monitor:forecast_counter >= 1
+          edit PPHH '01'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 02
+          trigger ../forecast/monitor:forecast_counter >= 2
+          edit PPHH '02'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 03
+          trigger ../forecast/monitor:forecast_counter >= 3
+          edit PPHH '03'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 04
+          trigger ../forecast/monitor:forecast_counter >= 4
+          edit PPHH '04'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 05
+          trigger ../forecast/monitor:forecast_counter >= 5
+          edit PPHH '05'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 06
+          trigger ../forecast/monitor:forecast_counter >= 6
+          edit PPHH '06'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 07
+          trigger ../forecast/monitor:forecast_counter >= 7
+          edit PPHH '07'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 08
+          trigger ../forecast/monitor:forecast_counter >= 8
+          edit PPHH '08'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 09
+          trigger ../forecast/monitor:forecast_counter >= 9
+          edit PPHH '09'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 10
+          trigger ../forecast/monitor:forecast_counter >= 10
+          edit PPHH '10'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 11
+          trigger ../forecast/monitor:forecast_counter >= 11
+          edit PPHH '11'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 12
+          trigger ../forecast/monitor:forecast_counter >= 12
+          edit PPHH '12'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 13
+          trigger ../forecast/monitor:forecast_counter >= 13
+          edit PPHH '13'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 14
+          trigger ../forecast/monitor:forecast_counter >= 14
+          edit PPHH '14'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 15
+          trigger ../forecast/monitor:forecast_counter >= 15
+          edit PPHH '15'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 16
+          trigger ../forecast/monitor:forecast_counter >= 16
+          edit PPHH '16'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 17
+          trigger ../forecast/monitor:forecast_counter >= 17
+          edit PPHH '17'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 18
+          trigger ../forecast/monitor:forecast_counter >= 18
+          edit PPHH '18'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 19
+          trigger ../forecast/monitor:forecast_counter >= 19
+          edit PPHH '19'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 20
+          trigger ../forecast/monitor:forecast_counter >= 20
+          edit PPHH '20'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 21
+          trigger ../forecast/monitor:forecast_counter >= 21
+          edit PPHH '21'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 22
+          trigger ../forecast/monitor:forecast_counter >= 22
+          edit PPHH '22'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 23
+          trigger ../forecast/monitor:forecast_counter >= 23
+          edit PPHH '23'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 24
+          trigger ../forecast/monitor:forecast_counter >= 24
+          edit PPHH '24'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 25
+          trigger ../forecast/monitor:forecast_counter >= 25
+          edit PPHH '25'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 26
+          trigger ../forecast/monitor:forecast_counter >= 26
+          edit PPHH '26'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 27
+          trigger ../forecast/monitor:forecast_counter >= 27
+          edit PPHH '27'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 28
+          trigger ../forecast/monitor:forecast_counter >= 28
+          edit PPHH '28'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 29
+          trigger ../forecast/monitor:forecast_counter >= 29
+          edit PPHH '29'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 30
+          trigger ../forecast/monitor:forecast_counter >= 30
+          edit PPHH '30'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 31
+          trigger ../forecast/monitor:forecast_counter >= 31
+          edit PPHH '31'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 32
+          trigger ../forecast/monitor:forecast_counter >= 32
+          edit PPHH '32'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 33
+          trigger ../forecast/monitor:forecast_counter >= 33
+          edit PPHH '33'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 34
+          trigger ../forecast/monitor:forecast_counter >= 34
+          edit PPHH '34'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 35
+          trigger ../forecast/monitor:forecast_counter >= 35
+          edit PPHH '35'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 36
+          trigger ../forecast/monitor:forecast_counter >= 36
+          edit PPHH '36'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 37
+          trigger ../forecast/monitor:forecast_counter >= 37
+          edit PPHH '37'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 38
+          trigger ../forecast/monitor:forecast_counter >= 38
+          edit PPHH '38'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 39
+          trigger ../forecast/monitor:forecast_counter >= 39
+          edit PPHH '39'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 40
+          trigger ../forecast/monitor:forecast_counter >= 40
+          edit PPHH '40'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 41
+          trigger ../forecast/monitor:forecast_counter >= 41
+          edit PPHH '41'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 42
+          trigger ../forecast/monitor:forecast_counter >= 42
+          edit PPHH '42'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 43
+          trigger ../forecast/monitor:forecast_counter >= 43
+          edit PPHH '43'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 44
+          trigger ../forecast/monitor:forecast_counter >= 44
+          edit PPHH '44'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 45
+          trigger ../forecast/monitor:forecast_counter >= 45
+          edit PPHH '45'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 46
+          trigger ../forecast/monitor:forecast_counter >= 46
+          edit PPHH '46'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 47
+          trigger ../forecast/monitor:forecast_counter >= 47
+          edit PPHH '47'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 48
+          trigger ../forecast/monitor:forecast_counter >= 48
+          edit PPHH '48'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 49
+          trigger ../forecast/monitor:forecast_counter >= 49
+          edit PPHH '49'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 50
+          trigger ../forecast/monitor:forecast_counter >= 50
+          edit PPHH '50'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 51
+          trigger ../forecast/monitor:forecast_counter >= 51
+          edit PPHH '51'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 52
+          trigger ../forecast/monitor:forecast_counter >= 52
+          edit PPHH '52'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 53
+          trigger ../forecast/monitor:forecast_counter >= 53
+          edit PPHH '53'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 54
+          trigger ../forecast/monitor:forecast_counter >= 54
+          edit PPHH '54'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 55
+          trigger ../forecast/monitor:forecast_counter >= 55
+          edit PPHH '55'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 56
+          trigger ../forecast/monitor:forecast_counter >= 56
+          edit PPHH '56'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 57
+          trigger ../forecast/monitor:forecast_counter >= 57
+          edit PPHH '57'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 58
+          trigger ../forecast/monitor:forecast_counter >= 58
+          edit PPHH '58'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 59
+          trigger ../forecast/monitor:forecast_counter >= 59
+          edit PPHH '59'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 60
+          trigger ../forecast/monitor:forecast_counter >= 60
+          edit PPHH '60'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+      endfamily
+      family finish
+        trigger ./forecast == complete
+        trigger -a ./post == complete
+        task cleanup
+        task set_defstatus
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task cycle_data_update
+          inlimit max_sync
+      endfamily
+    endfamily
+    family 15
+      defstatus complete
+      edit RR '15'
+      edit YMD ''
+      edit RUNDATE '@YMD@@RR@'
+      edit FCLEN '3'
+      edit THIS_RUN '15'
+      edit PREV_RUN '12'
+      edit NEXT_RUN '18'
+      label RUNDATE ""
+      family initialisation
+        trigger ../12/next_cycle/save_first_guess/03 == complete 
+        task init_forecast
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task copy_namelists
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+          inlimit max_init
+        task sync_data
+          inlimit max_init
+        task init_workpaths
+      endfamily
+      family lbc
+        trigger ./initialisation == complete
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/lbc'
+        inlimit max_postproc
+        event LAUNCH_FC
+        event LAUNCH_00
+        task retrieve_lbc
+          edit WALLTIME '@WALLTIME_RET@'
+          meter lbc_counter -1 3 3
+        task prep_lbc
+          trigger retrieve_lbc == complete
+          edit WALLTIME '@WALLTIME_PRE@'
+          edit NODE_SELECT '@SELECT_PRE@'
+          meter lbc_counter -1 3 3
+      endfamily
+      family assimilation
+        trigger ./initialisation == complete
+        edit NODE_SELECT '@SELECT_SERIAL@'
+        edit WALLTIME '@WALLTIME_SERIAL@'
+        task check_first_guess
+        family surface
+          trigger ./check_first_guess == complete
+          edit OBSTYPES '@OBSTYPES_SURFACE@'
+          edit ASSIM_LABEL 'surface'
+          task get_obs
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task bator
+            trigger ./get_obs == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+            edit NODE_SELECT '@SELECT_BATOR@'
+            edit WALLTIME '@WALLTIME_BATOR@'
+          task odb_merge
+            trigger ./bator == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task sst_update
+            trigger (../../lbc == complete or ../../lbc:LAUNCH_00 == set)
+          task canari
+            trigger ./odb_merge == complete and ./sst_update == complete
+            edit NODE_SELECT '@SELECT_CANARI@'
+        endfamily
+        family upper_air
+          trigger ./surface == complete
+          task copy_soil
+            edit NODE_SELECT '@SELECT_POS@'
+            edit WALLTIME '@WALLTIME_POS@'
+        endfamily
+        task archive_assim
+          trigger ./surface == complete && ./upper_air == complete
+      endfamily
+      family forecast
+        trigger (./lbc == complete or ./lbc:LAUNCH_FC == set) && ./assimilation == complete 
+        task integration
+          edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/forecast'
+          edit NODE_SELECT '@SELECT_FC@'
+          edit WALLTIME '@WALLTIME_FC@'
+        task monitor
+          trigger ./integration == active || ./integration == complete
+          edit NODE_SELECT '@SELECT_SERIAL@'
+          edit WALLTIME '@WALLTIME_FC@'
+          meter forecast_counter -1 3 3
+      endfamily
+      family next_cycle
+        task queue_next
+          complete /AO40CA2/cycle/18 == active and (100 * /AO40CA2/cycle/18:YMD + /AO40CA2/cycle/18:RR > 100 * :YMD + :RR)
+          trigger ../initialisation == complete && /AO40CA2/cycle/18 == complete
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        family save_first_guess
+          family 03
+            trigger ../../forecast/monitor:forecast_counter >= 3
+            edit WALLTIME '00:05:00'
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/next_cycle'
+            task save_first_guess
+          endfamily
+        endfamily
+      endfamily
+      family finish
+        trigger ./forecast == complete
+        task cleanup
+        task set_defstatus
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task cycle_data_update
+          inlimit max_sync
+      endfamily
+    endfamily
+    family 18
+      defstatus complete
+      edit RR '18'
+      edit YMD ''
+      edit RUNDATE '@YMD@@RR@'
+      edit FCLEN '60'
+      edit THIS_RUN '18'
+      edit PREV_RUN '15'
+      edit NEXT_RUN '21'
+      label RUNDATE ""
+      family initialisation
+        trigger ../15/next_cycle/save_first_guess/03 == complete 
+        task init_forecast
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task copy_namelists
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+          inlimit max_init
+        task sync_data
+          inlimit max_init
+        task init_workpaths
+      endfamily
+      family lbc
+        trigger ./initialisation == complete
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/lbc'
+        inlimit max_postproc
+        event LAUNCH_FC
+        event LAUNCH_00
+        task retrieve_lbc
+          edit WALLTIME '@WALLTIME_RET@'
+          meter lbc_counter -1 60 60
+        task prep_lbc
+          trigger retrieve_lbc == complete
+          edit WALLTIME '@WALLTIME_PRE@'
+          edit NODE_SELECT '@SELECT_PRE@'
+          meter lbc_counter -1 60 60
+      endfamily
+      family assimilation
+        trigger ./initialisation == complete
+        edit NODE_SELECT '@SELECT_SERIAL@'
+        edit WALLTIME '@WALLTIME_SERIAL@'
+        task check_first_guess
+        family surface
+          trigger ./check_first_guess == complete
+          edit OBSTYPES '@OBSTYPES_SURFACE@'
+          edit ASSIM_LABEL 'surface'
+          task get_obs
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task bator
+            trigger ./get_obs == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+            edit NODE_SELECT '@SELECT_BATOR@'
+            edit WALLTIME '@WALLTIME_BATOR@'
+          task odb_merge
+            trigger ./bator == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task sst_update
+            trigger (../../lbc == complete or ../../lbc:LAUNCH_00 == set)
+          task canari
+            trigger ./odb_merge == complete and ./sst_update == complete
+            edit NODE_SELECT '@SELECT_CANARI@'
+        endfamily
+        family upper_air
+          trigger ./surface == complete
+          task copy_soil
+            edit NODE_SELECT '@SELECT_POS@'
+            edit WALLTIME '@WALLTIME_POS@'
+        endfamily
+        task archive_assim
+          trigger ./surface == complete && ./upper_air == complete
+      endfamily
+      family forecast
+        trigger (./lbc == complete or ./lbc:LAUNCH_FC == set) && ./assimilation == complete 
+        task integration
+          edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/forecast'
+          edit NODE_SELECT '@SELECT_FC@'
+          edit WALLTIME '@WALLTIME_FC@'
+        task monitor
+          trigger ./integration == active || ./integration == complete
+          edit NODE_SELECT '@SELECT_SERIAL@'
+          edit WALLTIME '@WALLTIME_FC@'
+          meter forecast_counter -1 60 60
+      endfamily
+      family next_cycle
+        task queue_next
+          complete /AO40CA2/cycle/21 == active and (100 * /AO40CA2/cycle/21:YMD + /AO40CA2/cycle/21:RR > 100 * :YMD + :RR)
+          trigger ../initialisation == complete && /AO40CA2/cycle/21 == complete
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        family save_first_guess
+          family 03
+            trigger ../../forecast/monitor:forecast_counter >= 3
+            edit WALLTIME '00:05:00'
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/next_cycle'
+            task save_first_guess
+          endfamily
+        endfamily
+      endfamily
+      family post
+        trigger ./forecast/integration == complete or ./forecast/integration == active
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/post'
+        family 01
+          trigger ../forecast/monitor:forecast_counter >= 1
+          edit PPHH '01'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 02
+          trigger ../forecast/monitor:forecast_counter >= 2
+          edit PPHH '02'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 03
+          trigger ../forecast/monitor:forecast_counter >= 3
+          edit PPHH '03'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 04
+          trigger ../forecast/monitor:forecast_counter >= 4
+          edit PPHH '04'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 05
+          trigger ../forecast/monitor:forecast_counter >= 5
+          edit PPHH '05'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 06
+          trigger ../forecast/monitor:forecast_counter >= 6
+          edit PPHH '06'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 07
+          trigger ../forecast/monitor:forecast_counter >= 7
+          edit PPHH '07'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 08
+          trigger ../forecast/monitor:forecast_counter >= 8
+          edit PPHH '08'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 09
+          trigger ../forecast/monitor:forecast_counter >= 9
+          edit PPHH '09'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 10
+          trigger ../forecast/monitor:forecast_counter >= 10
+          edit PPHH '10'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 11
+          trigger ../forecast/monitor:forecast_counter >= 11
+          edit PPHH '11'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 12
+          trigger ../forecast/monitor:forecast_counter >= 12
+          edit PPHH '12'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 13
+          trigger ../forecast/monitor:forecast_counter >= 13
+          edit PPHH '13'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 14
+          trigger ../forecast/monitor:forecast_counter >= 14
+          edit PPHH '14'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 15
+          trigger ../forecast/monitor:forecast_counter >= 15
+          edit PPHH '15'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 16
+          trigger ../forecast/monitor:forecast_counter >= 16
+          edit PPHH '16'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 17
+          trigger ../forecast/monitor:forecast_counter >= 17
+          edit PPHH '17'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 18
+          trigger ../forecast/monitor:forecast_counter >= 18
+          edit PPHH '18'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 19
+          trigger ../forecast/monitor:forecast_counter >= 19
+          edit PPHH '19'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 20
+          trigger ../forecast/monitor:forecast_counter >= 20
+          edit PPHH '20'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 21
+          trigger ../forecast/monitor:forecast_counter >= 21
+          edit PPHH '21'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 22
+          trigger ../forecast/monitor:forecast_counter >= 22
+          edit PPHH '22'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 23
+          trigger ../forecast/monitor:forecast_counter >= 23
+          edit PPHH '23'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 24
+          trigger ../forecast/monitor:forecast_counter >= 24
+          edit PPHH '24'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 25
+          trigger ../forecast/monitor:forecast_counter >= 25
+          edit PPHH '25'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 26
+          trigger ../forecast/monitor:forecast_counter >= 26
+          edit PPHH '26'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 27
+          trigger ../forecast/monitor:forecast_counter >= 27
+          edit PPHH '27'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 28
+          trigger ../forecast/monitor:forecast_counter >= 28
+          edit PPHH '28'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 29
+          trigger ../forecast/monitor:forecast_counter >= 29
+          edit PPHH '29'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 30
+          trigger ../forecast/monitor:forecast_counter >= 30
+          edit PPHH '30'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 31
+          trigger ../forecast/monitor:forecast_counter >= 31
+          edit PPHH '31'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 32
+          trigger ../forecast/monitor:forecast_counter >= 32
+          edit PPHH '32'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 33
+          trigger ../forecast/monitor:forecast_counter >= 33
+          edit PPHH '33'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 34
+          trigger ../forecast/monitor:forecast_counter >= 34
+          edit PPHH '34'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 35
+          trigger ../forecast/monitor:forecast_counter >= 35
+          edit PPHH '35'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 36
+          trigger ../forecast/monitor:forecast_counter >= 36
+          edit PPHH '36'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 37
+          trigger ../forecast/monitor:forecast_counter >= 37
+          edit PPHH '37'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 38
+          trigger ../forecast/monitor:forecast_counter >= 38
+          edit PPHH '38'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 39
+          trigger ../forecast/monitor:forecast_counter >= 39
+          edit PPHH '39'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 40
+          trigger ../forecast/monitor:forecast_counter >= 40
+          edit PPHH '40'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 41
+          trigger ../forecast/monitor:forecast_counter >= 41
+          edit PPHH '41'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 42
+          trigger ../forecast/monitor:forecast_counter >= 42
+          edit PPHH '42'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 43
+          trigger ../forecast/monitor:forecast_counter >= 43
+          edit PPHH '43'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 44
+          trigger ../forecast/monitor:forecast_counter >= 44
+          edit PPHH '44'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 45
+          trigger ../forecast/monitor:forecast_counter >= 45
+          edit PPHH '45'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 46
+          trigger ../forecast/monitor:forecast_counter >= 46
+          edit PPHH '46'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 47
+          trigger ../forecast/monitor:forecast_counter >= 47
+          edit PPHH '47'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 48
+          trigger ../forecast/monitor:forecast_counter >= 48
+          edit PPHH '48'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 49
+          trigger ../forecast/monitor:forecast_counter >= 49
+          edit PPHH '49'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 50
+          trigger ../forecast/monitor:forecast_counter >= 50
+          edit PPHH '50'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 51
+          trigger ../forecast/monitor:forecast_counter >= 51
+          edit PPHH '51'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 52
+          trigger ../forecast/monitor:forecast_counter >= 52
+          edit PPHH '52'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 53
+          trigger ../forecast/monitor:forecast_counter >= 53
+          edit PPHH '53'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 54
+          trigger ../forecast/monitor:forecast_counter >= 54
+          edit PPHH '54'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 55
+          trigger ../forecast/monitor:forecast_counter >= 55
+          edit PPHH '55'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 56
+          trigger ../forecast/monitor:forecast_counter >= 56
+          edit PPHH '56'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 57
+          trigger ../forecast/monitor:forecast_counter >= 57
+          edit PPHH '57'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 58
+          trigger ../forecast/monitor:forecast_counter >= 58
+          edit PPHH '58'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 59
+          trigger ../forecast/monitor:forecast_counter >= 59
+          edit PPHH '59'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+        family 60
+          trigger ../forecast/monitor:forecast_counter >= 60
+          edit PPHH '60'
+          family gather_io
+            task gather_io
+          endfamily
+          family be13b_l
+            trigger ./gather_io == complete 
+            edit pp_domain 'BE40a_l'
+            task interpolation
+              edit NODE_SELECT '@SELECT_POS@'
+              edit WALLTIME '00:05:00'
+              inlimit max_postproc
+          endfamily
+        endfamily
+      endfamily
+      family finish
+        trigger ./forecast == complete
+        trigger -a ./post == complete
+        task cleanup
+        task set_defstatus
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task cycle_data_update
+          inlimit max_sync
+      endfamily
+    endfamily
+    family 21
+      defstatus complete
+      edit RR '21'
+      edit YMD ''
+      edit RUNDATE '@YMD@@RR@'
+      edit FCLEN '3'
+      edit THIS_RUN '21'
+      edit PREV_RUN '18'
+      edit NEXT_RUN '00'
+      label RUNDATE ""
+      family initialisation
+        trigger ../18/next_cycle/save_first_guess/03 == complete 
+        task init_forecast
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task copy_namelists
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+          inlimit max_init
+        task sync_data
+          inlimit max_init
+        task init_workpaths
+      endfamily
+      family lbc
+        trigger ./initialisation == complete
+        edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/lbc'
+        inlimit max_postproc
+        event LAUNCH_FC
+        event LAUNCH_00
+        task retrieve_lbc
+          edit WALLTIME '@WALLTIME_RET@'
+          meter lbc_counter -1 3 3
+        task prep_lbc
+          trigger retrieve_lbc == complete
+          edit WALLTIME '@WALLTIME_PRE@'
+          edit NODE_SELECT '@SELECT_PRE@'
+          meter lbc_counter -1 3 3
+      endfamily
+      family assimilation
+        trigger ./initialisation == complete
+        edit NODE_SELECT '@SELECT_SERIAL@'
+        edit WALLTIME '@WALLTIME_SERIAL@'
+        task check_first_guess
+        family surface
+          trigger ./check_first_guess == complete
+          edit OBSTYPES '@OBSTYPES_SURFACE@'
+          edit ASSIM_LABEL 'surface'
+          task get_obs
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task bator
+            trigger ./get_obs == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+            edit NODE_SELECT '@SELECT_BATOR@'
+            edit WALLTIME '@WALLTIME_BATOR@'
+          task odb_merge
+            trigger ./bator == complete
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/assimilation'
+          task sst_update
+            trigger (../../lbc == complete or ../../lbc:LAUNCH_00 == set)
+          task canari
+            trigger ./odb_merge == complete and ./sst_update == complete
+            edit NODE_SELECT '@SELECT_CANARI@'
+        endfamily
+        family upper_air
+          trigger ./surface == complete
+          task copy_soil
+            edit NODE_SELECT '@SELECT_POS@'
+            edit WALLTIME '@WALLTIME_POS@'
+        endfamily
+        task archive_assim
+          trigger ./surface == complete && ./upper_air == complete
+      endfamily
+      family forecast
+        trigger (./lbc == complete or ./lbc:LAUNCH_FC == set) && ./assimilation == complete 
+        task integration
+          edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/forecast'
+          edit NODE_SELECT '@SELECT_FC@'
+          edit WALLTIME '@WALLTIME_FC@'
+        task monitor
+          trigger ./integration == active || ./integration == complete
+          edit NODE_SELECT '@SELECT_SERIAL@'
+          edit WALLTIME '@WALLTIME_FC@'
+          meter forecast_counter -1 3 3
+      endfamily
+      family next_cycle
+        task queue_next
+          complete /AO40CA2/cycle/00 == active and (100 * /AO40CA2/cycle/00:YMD + /AO40CA2/cycle/00:RR > 100 * :YMD + :RR)
+          trigger ../initialisation == complete && /AO40CA2/cycle/00 == complete
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        family save_first_guess
+          family 03
+            trigger ../../forecast/monitor:forecast_counter >= 3
+            edit WALLTIME '00:05:00'
+            edit ECF_FILES '/home/cvah/ECF/AO40CA2/scr/next_cycle'
+            task save_first_guess
+          endfamily
+        endfamily
+      endfamily
+      family finish
+        trigger ./forecast == complete
+        task cleanup
+        task set_defstatus
+          edit HOST 'hpc'
+          edit USER 'cvah'
+          edit ECF_OUT '/home/cvah/ECF/AO40CA2/tmp'
+          edit LOCALJOB 'yes'
+        task cycle_data_update
+          inlimit max_sync
+      endfamily
+    endfamily
+  endfamily
+endsuite
+# enddef

@@ -1,0 +1,5 @@
+! empty domin specifications for inline fullpos to model domain
+&NAMFPD
+/
+&NAMFPG
+/

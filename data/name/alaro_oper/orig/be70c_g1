@@ -1,0 +1,12 @@
+! $Id: be70c_g1,v 1.2 2008/09/24 09:51:42 ald_team Exp $
+&NAMFPD 
+! Beware: each on a separate line with the (1)
+ NLAT(1)=     97,
+ NLON(1)=     97,
+ RLONC(1)= 4.526,
+ RLATC(1)=50.528,
+ RDELX(1)= 0.092,
+ RDELY(1)= 0.061,
+/
+&NAMFPG 
+/

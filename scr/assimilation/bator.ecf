@@ -1,0 +1,163 @@
+#!/bin/bash
+@manual
+This task prepares observations for use by the data assimilation tasks.
+If this task fails:
+  1. check whether all observations are present (get_obs task)
+  2. check output to see what may be the cause of crash. Try to re-run.
+  3. If there is no way to get this task to run in time, data assimialation can be turned off by running the task surface/skip_surface_assimilation.
+
+  Note that this 3rd option should be avoided if possible!
+
+
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <settings_odb.h>
+@include <@ENV_ALADIN@>
+
+ulimit -s unlimited
+set -x
+# OpenMP tuning
+export OMP_NUM_THREADS=1
+export MP_SINGLE_THREAD="yes"
+export OMP_DYNAMIC="false"
+export OMP_STACKSIZE='1G'
+export DR_HOOK=-1
+export DR_HOOK_IGNORE_SIGNALS=-1
+#export NPROC=1
+export KMP_AFFINITY=disabled
+export KMP_STACKSIZE=1g
+export MPI_MEMMAP_OFF=true
+export MPI_XPMEM_ENABLED=false
+export MP_SHARED_MEMORY=no
+export DR_HOOK_NOT_MPI=""
+export MPI_XPMEM_ENABLED=disabled
+export MPI_SHEPHERD=true
+
+
+# SETTINGS FOR ODB 
+#---------------------------------
+export EC_PROFILE_HEAP=0
+export TO_ODB_ECMWF=0
+export TO_ODB_SWAPOUT=0
+export ODB_DEBUG=0
+export ODB_CTX_DEBUG=0
+export ODB_REPRODUCIBLE_SEQNO=2
+export ODB_STATIC_LINKING=1
+export ODB_IO_METHOD=1
+export ODB_ANALYSIS_DATE=${YYYY}${MM}${DD}
+export ODB_ANALYSIS_TIME=${RR}0000
+export TIME_INIT_YYYYMMDD=${YYYY}${MM}${DD}
+export TIME_INIT_HHMMSS=${RR}0000
+
+#OBSLIST=(${OBSTYPES//,/ })
+
+for obstype in ${OBSTYPES}; do
+  if [[ $obstype == radar ]] ; then
+    if [[ $(ls $d_OBS/HDF5* 2>/dev/null | wc -l) == 0 ]] ; then
+      continue
+    fi
+  elif [[ ! -e $d_OBS/${obstype}_${RUNDATE}00.bufr ]] ; then
+    continue
+  fi
+  WDIR=$d_BATOR/$obstype
+  mkdir -p  $WDIR
+  cd $WDIR
+  rm -rf *
+
+  #{d_BIN}1=/home/idehmous/pack/43t2_bf.11.modes_INTEL1700c.x/bin
+  #d_BIN=/home/cvah/pack/43t2_bf11_bator_mars/bin
+  ln -sf ${d_BIN}/BATOR BATOR
+  ln -sf ${d_BIN}/odbtools.x shuffle
+  ln -sf ${d_BIN}/ioassign ioassign
+
+  # SCRIPTS FOR IOASSIGN
+  # create_ioassign MUST be in the PATH (called from merge_ioassign)
+  export PATH=.:$PATH
+  ln -sf ${CREATE_IOASSIGN}  create_ioassign
+  ln -sf ${MERGE_IOASSIGN}   merge_ioassign
+
+  # BLACKLIST FILES
+  cp -f ${d_ETC}/LISTE_NOIRE_DIAP LISTE_NOIRE_DIAP
+  cp -f ${d_ETC}/LISTE_LOC LISTE_LOC
+
+  # NAMELIST LAMFLAG 
+  cp -f ${d_NAMELIST}/namel_lamflag_$DOMAIN NAM_lamflag
+
+  # BUFR CONFIGURATION FILE
+  #cp -f ${d_ETC}/param-cy43.cfg param.cfg
+#  cp -f ${d_ETC}/param.cfg param.cfg
+  cp -f ${d_ETC}/param_mars.cfg param.cfg
+  echo "=== BUFR_TABLES=${BUFR_TABLES:-} ==="
+  # NOTE: do not forget last "/" !!!
+  # NOTE: mf_bufrtables have a completely different format, so you can not use anything else...
+  #  with non-MF, bator will crash
+
+#  export BUFR_TABLES="/home/cv6/software/auxlibs/3.7/lib/bufrtables.383MF/mf_bufrtables/"
+#  export BUFR_TABLES="/ec/res4/hpcperm/cv6/NR/MF_BUFR/"
+  # NAMELIST GPS 
+  #cp -f ${d_ETC}/list_gpssol_ar13 list_gpssol
+  cp -f ${d_ETC}/list_gpssol list_gpssol
+
+  # NAMELIST BATOR 
+  cp -f ${d_NAMELIST}/namel_bator NAMELIST
+
+  # ODB ENVIRONMENT
+  export ODB_SRCPATH_ECMA=$WDIR/ECMA.${obstype}
+  export ODB_DATAPATH_ECMA=$WDIR/ECMA.${obstype}
+  export IOASSIGN=$WDIR/IOASSIGN
+  export ODB_CMA=ECMA
+  export BATOR_NBPOOL=${OBS_NPOOL}
+  export BATOR_LAMFLAG=1
+
+  # data/time settings (new from >= cy42)
+  # THIS MAY DEPEND ON OBS TYPE !!!
+  export BATOR_WINDOW_LEN=180
+  export BATOR_WINDOW_SHIFT=-90
+  export BATOR_NBSLOT=1
+  export BATOR_SLOT_LEN=0
+  export BATOR_CENTER_LEN=0
+
+  # CREATE IOASSIGN FOR GIVEN SUB-BASE
+  # note: by default this script is not executable
+  # so use ksh or do chmod +x on all scripts in the pack
+  export PATH=${d_BIN}:$PATH
+  ksh ./create_ioassign -l${ODB_CMA} -n${BATOR_NBPOOL}
+
+  if [[ $obstype != radar ]] ; then
+    cp ${d_OBS}/${obstype}_${RUNDATE}00.bufr BUFR.$obstype
+    echo "$obstype    $obstype     BUFR     $obstype "  > batormap
+  else
+    i=0
+    for file in  ${d_OBS}/HDF5*  ; do
+      i=$(( $i + 1 ))
+      echo "radar   site${i}   HDF5    odim" >> batormap
+      ln -sf ${d_OBS}/HDF5.site${i}      HDF5.site${i}
+    done
+  fi
+
+  # RUN BATOR 
+  $MPIRUN  ./BATOR > out.$obstype 2> err.$obstype
+
+
+# CHECK THE BASE DIRECTORY GENARATION
+# NO DIRECTORY IS GENERATED FOR A GIVEN
+# OBSTYPE IF AN ERROR HAS OCCURED
+  if  [ -d  ECMA.${obstype} ] ; then
+    cp -f  IOASSIGN ECMA.${obstype}/IOASSIGN
+    rm -rf  ${d_BATOR}/ECMA.${obstype}
+    cp -rf  ECMA.$obstype $d_BATOR
+  else
+    echo "Directory doesn't exist for $obstype "
+  fi
+  # CLEANUP:
+  # cd $d_ODB
+  # rm -rf $obstype
+done
+
+# SAVE THE ODB ???
+#cd $d_ODB
+#tar cvf ECMA_raw.tar ECMA.*
+
+@include <tail.h>

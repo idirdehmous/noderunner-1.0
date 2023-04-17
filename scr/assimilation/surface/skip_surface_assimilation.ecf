@@ -1,0 +1,37 @@
+#!/bin/bash
+@manual
+This script will skip the complete data assimilation part of the cycle. The first guess will be used directly as analysis.
+ONLY USE IN CASE OF EMERGENCY!
+
+If assimilation tasks (bator, canari) fail, or if no observations are available, this task may be run.
+
+By running this task, there will be no new observations assimilated in the initial conditions. This is acceptable for a single run, but should be avoided if possible.
+
+Note that this will only work if there is a first guess available.
+
+@end
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@> # not really necessary...
+
+# set the surface assimilation family to "complete"
+# we only set the CANARI task itself: we still want the sst_update to run !
+# "first_guess" at this point may already be a link to the intermediate results
+# in fact, no need to re-link the non-surfex part
+# for the moment, we are replacing it by the telecom file anyway.
+# but in non-surfex, it's different.
+ln -sf $d_GUESS/first_guess_orig $d_GUESS/first_guess_canari
+if [[ $SURFACE = "surfex" ]] ; then
+  ln -sf ${d_GUESS}/first_guess_sfx  ${d_GUESS}/analysis_sfx
+fi
+
+#ecflow_client --force=complete recursive /@SUITE@/cycle/@THIS_RUN@/assimilation/surface/canari
+ecflow_client --force=complete recursive /@SUITE@/@FAMILY@/canari
+ecflow_client --event SKIP_CANARI
+# ln -sf $WDIR/first_guess $WDIR/analysis_canari
+# echo $RUNDATE > $WDIR/NO_CANARI
+# SEND A MAIL
+@include <tail.h>
+

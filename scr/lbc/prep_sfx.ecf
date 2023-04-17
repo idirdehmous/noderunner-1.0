@@ -1,0 +1,94 @@
+@manual
+This task prepares the initial conditions for SURFEX from coupling files without surfex.
+In a downscaling run, this is a normal procedure. In a data assimilation cycle, however, such a cold start should be avoided at all cost.
+
+Usually, this task will be set complete automatically (by init_forecast task).
+Only in case of a COLD START should this task be run.
+
+Note that this task will do nothing if the COLDSTART variable is not set to the current date/run time.
+
+@end
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+set -x
+umask 0022
+
+# FIXME: all CLIM references must be adapted for ald_op !
+
+export DR_HOOK_NOT_MPI=
+export OMP_NUM_THREADS=1
+
+
+# ONLY needed for surfex "cold start".
+# Usually, this job should *never run* (except the very first day).
+# Unless you are in dynamical adaptation, of course.
+# If ECF_TRYNO > 2, we assume you really want it to run.
+
+if [[ $ASSIMILATION = yes && $COLDSTART != $RUNDATE && $ECF_TRYNO -le 2 ]] ; then
+  echo "No prep needed."
+  complete_and_exit
+fi
+
+####################
+# SURFEX INIT FILE #
+####################
+
+WDIR=${d_LBC}/sfx
+
+mkdir -p $WDIR
+rm -f ${WDIR}/*
+cd ${WDIR}
+
+# "input" is the same 00h coupling file as for the lbc's
+
+ln -sf ${d_LBC}/input/LBC_00 ICMSH${CNMEXP}INIT
+
+# Create namelist file
+NAMELIST="$( for nn in $NAMELIST_PREP_SFX ; do echo ${d_NAMELIST}/$nn ; done )"
+
+cat ${NAMELIST} | grep -v '^!' | sed \
+    -e "s/!.*//"  \
+    -e "s/NPROC=.*/NPROC=$NPROC/" \
+    -e "s/NSTRIN=.*/NSTRIN=$NPROC/" \
+    -e "s/NSTROUT=.*/NSTROUT=$NPROC/" \
+    -e "s/CNMEXP=.*/CNMEXP=\'$CNMEXP\'/"    \
+    -e "s/CFPDOM(1)=.*/CFPDOM(1)=\'$DOMAIN\'/"    \
+   > fort.4
+
+# create surfex namelist file !?
+cat << EOF > PRE_REAL1.nam
+&NAM_PREP_TEB
+  LTEB_CANOPY=.FALSE., ! turn CANOPY off
+/
+&NAM_PREP_ISBA
+  LISBA_CANOPY=.FALSE.,
+/
+EOF
+
+# Climate files
+ln -sf ${d_CLIM}/${DOMAIN}_$MM const.clim.${DOMAIN}
+ln -sf ${d_CLIM}/${PGD_FILE} const.clim.sfx.${DOMAIN}
+ln -sf ${d_CLIM}/${COUPLING_DOMAIN}_$MM Const.Clim
+
+ln -sf ${DATADIR_ECOCLIMAP}/* .
+
+# Bring rrtm data
+ln -sf ${DATADIR_RUNTIME}/* .
+
+# run
+ln -sf ${d_BIN}/MASTERODB MASTERODB
+$MPIRUN ./MASTERODB > out.log 2>err.log
+
+if [[ ! -f PF${CNMEXP}${DOMAIN}+0000.sfx ]]; then
+  echo "Preprocessing surface fields failed."
+  exit 1
+else
+  mv PF${CNMEXP}${DOMAIN}+0000.sfx ${d_LBC}/ICMSH${CNMEXP}INIT.sfx
+fi
+
+@include <tail.h>
+

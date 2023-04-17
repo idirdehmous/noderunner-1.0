@@ -1,0 +1,23 @@
+#! /bin/bash
+# ATTENTION: only run this once!
+suite=$(basename `pwd`)
+inifile=${1:-${suite}.ini}
+echo Initialising suite $suite
+
+[ -e $inifile ] || {
+  echo "$inifile not found"
+  echo "Stopped."
+  exit
+}
+
+echo "Creating ${suite}.def"
+python3 python/node_runner.py $inifile || {
+  echo could not run node_runner.py
+  exit 1
+}
+
+echo "Loading ${suite} into ecflow. "
+ecflow_client --load ${suite}.def
+echo "Beginning ${suite} "
+ecflow_client --begin $suite
+

@@ -1,0 +1,478 @@
+! AL43 version
+! Namelist  EE927 to pre-process coupling files 
+! ydrostatic run, LVGSN=T, LO3ABC=.T.
+! SEE names between {} for values to adapt (nproc, nproca and nprocb)
+!-------------------------------------------------------------
+&NACIETEO 
+/
+&NACOBS
+/
+&NACTAN
+/
+&NACTEX
+/
+&NACVEG
+/
+&NADOCK
+/
+&NAEAER
+/
+&NAECOAPHY
+/
+&NAEPHLI
+/
+&NAEPHY
+/
+&NAERAD
+LRRTM=.F.
+LSRTM=.F.
+NMCICA=0
+/
+&NAEVOL
+/
+&NAIMPO
+/
+&NALORI
+/
+&NAMAFN
+    TFP_U%CLNAME='WIND.U.PHYS',
+    TFP_V%CLNAME='WIND.V.PHYS',
+!   TFP_CUF1%CLNAME='CUF1PRESSURE',
+/
+&NAMANCS
+/
+&NAMARG
+CNMEXP='{cnmexp}'
+CUSTOP='t0'
+LECMWF=.F.
+LELAM=.T.
+LSLAG=.F.
+NCONF=1
+TSTEP=1800.
+UTSTEP=1800.
+NSUPERSEDE=1,
+/
+&NAMARPHY
+/
+&NAMCA
+/
+&NAMCAPE
+/
+&NAMCFU
+/
+&NAMCHET
+/
+&NAMCHK
+/
+&NAMCLA
+/
+&NAMCLDP
+/
+&NAMCLI
+/
+&NAMCLOP15
+/
+&NAMCLTC
+/
+&NAMCOK
+/
+&NAMCOM
+/
+&NAMCT0
+    NSPPR=0, ! spectral norms diagnostics:
+!            0: print only global norms averaged on the vertical
+!            1: 0 + global norms on each layer 
+!            2: 1 + total wavenumber and zonal wavenumber spectra
+    NFPOS=2,
+    LALLOPR=.FALSE.,
+/
+&NAMCT1
+  N1HIS=0, ! over-riding switch for history write-up (0=FALSE)
+  LRFILAF=.FALSE.,    ! switch off LFI File catalog
+/
+&NAMCUMF
+ /
+&NAMCUMFS
+ /
+&NAMCVER
+/
+&NAMDDH
+/
+&NAMDFI
+/
+&NAMDIM
+/
+&NAMDIMO
+/
+&NAMDIM_TRAJ
+/
+&NAMDPHY
+/
+&NAMDYN
+/
+&NAMDYNA
+!NH NDLNPR=1, ! 1 to produce NH coupling files, else 0.
+/
+&NAMDYNCORE
+/
+&NAMEMIS_CONF
+/
+&NAMENKF
+/
+&NAMFA
+! Grib coding parameters for historic files
+   NBITPG=16, ! grid-point on 16 bits (def=24)
+   NBITCS=16, ! spectral coefficients on 16 bits (def=24)
+/
+&NAMFPC
+   LTRACEFP=.TRUE.,   ! daand: from AROME
+   CFPFMT='LELAM',
+   CFPDOM(1)='{domaine}',
+   CFP3DF(1)='TEMPERATURE',
+   CFP3DF(2)='WIND.U.PHYS',
+   CFP3DF(3)='WIND.V.PHYS',
+   CFP3DF(4)='HUMI.SPECIFIQUE',
+!! FOR NON-HYDROSTATIC:
+!-   CFP3DF(5)='PRESS.DEPART',
+!-   CFP3DF(6)='VERTIC.DIVER',
+!-------------------------------
+   CFP2DF(1)='SURFPRESSION',
+   CFP2DF(2)='SPECSURFGEOPOTENTIEL',
+!   CFP2DF(3)='CUF1PRESSURE', 
+   CFPPHY(1)='SURFTEMPERATURE',
+   CFPPHY(2)='PROFTEMPERATURE ',
+   CFPPHY(3)='PROFRESERV.EAU  ',
+   CFPPHY(4)='SURFRESERV.NEIGE',
+   CFPPHY(5)='SURFRESERV.EAU  ',
+   CFPPHY(6)='SURFZ0.FOIS.G   ',
+   CFPPHY(7)='SURFALBEDO      ',
+   CFPPHY(8)='SURFEMISSIVITE  ',
+   CFPPHY(9)='SURFET.GEOPOTENT',
+   CFPPHY(10)='SURFIND.TERREMER',
+   CFPPHY(11)='SURFPROP.VEGETAT',
+   CFPPHY(12)='SURFVAR.GEOP.ANI',
+   CFPPHY(13)='SURFVAR.GEOP.DIR',
+!! For ISBA:
+   CFPPHY(14)='SURFIND.VEG.DOMI',
+   CFPPHY(15)='SURFRESI.STO.MIN',
+   CFPPHY(16)='SURFPROP.ARGILE ',
+   CFPPHY(17)='SURFPROP.SABLE  ',
+   CFPPHY(18)='SURFEPAIS.SOL   ',
+   CFPPHY(19)='SURFIND.FOLIAIRE',
+   CFPPHY(20)='SURFRES.EVAPOTRA',
+   CFPPHY(21)='SURFGZ0.THERM   ',
+   CFPPHY(22)='SURFRESERV.INTER',
+   CFPPHY(23)='PROFRESERV.GLACE',
+   CFPPHY(24)='SURFRESERV.GLACE',
+! IF LVGSN=.TRUE.:
+   CFPPHY(25)='SURFDENSIT.NEIGE',
+   CFPPHY(26)='SURFALBEDO NEIGE',
+   CFPPHY(27)='SURFALBEDO.SOLNU',
+   CFPPHY(28)='SURFALBEDO.VEG',
+! FOR FMT radiation scheme and LO3ABC:
+   CFPPHY(29)='SURFA.OF.OZONE',
+   CFPPHY(30)='SURFB.OF.OZONE',
+   CFPPHY(31)='SURFC.OF.OZONE',
+   CFPPHY(32)='SURFAEROS.SEA',
+   CFPPHY(33)='SURFAEROS.LAND',
+   CFPPHY(34)='SURFAEROS.SOOT',
+   CFPPHY(35)='SURFAEROS.DESERT',
+!-------------------------------
+!  All levels BUT can differ from input file
+   NRFP3S={prlvls}
+   NFPCLI=3, ! For ISBA
+   LFPQ=.FALSE., !.F. if rel humidity is interpolated rather than q
+   RFPCORR=50000.,
+   RFPCSAB=100.,! Critl sand % != for cmpting rel soil moisture in ISBA
+   LFPMOIS={lfpmois},  ! T to keep clim of analysis at all ranges
+/
+&NAMFPDY2
+/
+&NAMFPDYF
+/
+&NAMFPDYH
+/
+&NAMFPDYI
+/
+&NAMFPDYP
+/
+&NAMFPDYS
+/
+&NAMFPDYT
+/
+&NAMFPDYV
+/
+&NAMFPF
+! Full Pos Spectral filter
+/
+&NAMFPIOS
+!    NFPXFLD=20, ! max. number of fields to be extracted at once
+/
+&NAMFPMOVE
+/
+&NAMFPPHY
+/
+&NAMFPSC2
+NFPROMA=-50
+/
+&NAMFPSC2_DEP
+NFPROMA_DEP=-50
+/
+&NAMGEM
+/
+&NAMGFL
+YG_NL%NREQIN=0
+YI_NL%NREQIN=0
+YL_NL%NREQIN=0
+YQ_NL%LGP=.F.
+YQ_NL%LSP=.T.,
+YQ_NL%NREQIN=1
+YR_NL%NREQIN=0
+YS_NL%NREQIN=0
+YTKE_NL%NREQIN=0
+/
+&NAMGRIB
+/
+&NAMGWD
+/
+&NAMGWDIAG
+/
+&NAMGWWMS
+/
+&NAMIAU
+/
+&NAMICE
+/
+&NAMINI
+LDFI=.F.,
+/
+&NAMINTFLEX
+/
+&NAMIOMI
+/
+&NAMIOS
+/
+&NAMIO_SERV
+/
+&NAMJBCODES
+/
+&NAMJFH
+/
+&NAMJG
+/
+&NAMLCZ
+/
+&NAMLSFORC
+/
+&NAMMARS
+/
+&NAMMCC
+/
+&NAMMCUF
+/
+&NAMMKODB
+/
+&NAMMODERR
+/
+&NAMMTS
+/
+&NAMMWAVE
+/
+&NAMNPROF
+/
+&NAMNUD
+/
+&NAMOBS
+/
+&NAMONEDVAR
+/
+&NAMOOPS
+/
+&NAMOPH
+NCADFORM=1
+/
+&NAMPAR0
+LMPOFF=.F., ! WORK WITH MPI
+LOPT_SCALAR=.T.
+MBX_SIZE=2048000000
+MP_TYPE=2, ! 1=blocked, 2=buffered, 3=immediate
+NOUTPUT=1
+NPROC={nbprocs}
+/
+&NAMPAR1
+!   LSLONDEM=.F., ! leave .T. the default ?
+LEQ_REGIONS=.F.
+LSPLIT=.F.,
+L_GATHERV_WRGP=.F.
+NCOMBFLEN=1800000, ! size of communication buffer (words, per proc)
+NSTRIN={nstr},
+NSTROUT={nstr},
+/ 
+&NAMPARAR
+/
+&NAMPHMSE
+LPGDFWR=.F.
+/
+&NAMPHY
+  LVGSN=.T.        ! .F. when fields not available
+  LO3ABC=.TRUE.,   ! For ozone fields
+  LAERODES=.TRUE., ! For aerosol fields
+  LAEROLAN=.TRUE.,
+  LAEROSEA=.TRUE.,
+  LAEROSOO=.TRUE.,
+  LCONDWT=.FALSE.,
+  LPROCLD=.FALSE.,
+/
+&NAMPHY0
+/
+&NAMPHY1
+/
+&NAMPHY2
+/
+&NAMPHY3
+/
+&NAMPHYDS
+/
+&NAMPONG
+/
+&NAMPPC
+/
+&NAMPPVI
+LESCALE=.T.
+LESCALE_GFL=.T.
+LESCALE_PD=.T.
+LESCALE_Q=.T.
+LESCALE_T=.T.
+LESCALE_U=.F.
+LPPVIVX=.T.
+/
+&NAMPRE
+/
+&NAMRAD15
+/
+&NAMRCOEF
+/
+&NAMRCF
+/
+&NAMRES
+/
+&NAMRGRI
+/
+&NAMRINC
+/
+&NAMRIP
+/
+&NAMRLX
+/
+&NAMSATS
+/
+&NAMSCC
+/
+&NAMSCEN
+/
+&NAMSCM
+/
+&NAMSEKF
+/
+&NAMSENS
+/
+&NAMSIMPHL
+/
+&NAMSPNG
+/
+&NAMSPSDT
+/
+&NAMSTA
+/
+&NAMSTEPS
+/
+&NAMSTOPH
+/
+&NAMSWE
+/
+&NAMTEST
+/
+&NAMTESTVAR
+/
+&NAMTHLIM
+/
+&NAMTOPH
+/
+&NAMTRAJP
+/
+&NAMTRANS
+/
+&NAMTRANS0
+/
+&NAMTS
+/
+&NAMVAR
+/
+&NAMVARBC
+/
+&NAMVARBC_AIREP
+/
+&NAMVARBC_ALLSKY
+/
+&NAMVARBC_GBRAD
+/
+&NAMVARBC_RAD
+/
+&NAMVARBC_SFCOBS
+/
+&NAMVARBC_TCWV
+/
+&NAMVARBC_TO3
+/
+&NAMVAREPS
+/
+&NAMVDF
+/
+&NAMVDOZ
+/
+&NAMVOLCANO
+/
+&NAMVRTL
+/
+&NAMVV0
+/
+&NAMVV1
+! Leave levels as is.
+/
+&NAMVWRK
+/
+&NAMWAVELETJB
+/
+&NAMXFU
+/
+&NAM_CANAPE
+/
+&NAM_DISTRIBUTED_VECTORS
+/
+&NAPHLC
+/
+&NEMCT0
+/
+&NEMDIM
+NBZONG=8
+NBZONL=8
+/
+&NEMDYN
+/
+&NEMELBC0A
+/
+&NEMELBC0B
+/
+&NEMFPEZO
+!-  RCO_EZO=80.
+/
+&NEMGEO
+/
+&NEMJK
+/
+&NEMVAR
+/
+&NAMTEST
+/
+&NEMWAVELET
+/          

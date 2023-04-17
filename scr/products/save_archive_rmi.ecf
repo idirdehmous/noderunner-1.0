@@ -1,0 +1,92 @@
+#!/bin/bash
+@manual
+This task selects some fields from the basic fullpos to create the smaller files that are archived.
+@end
+
+@include <head.h>
+@include <settings.h>
+
+# Load modules
+. ${MODULESHOME}/init/bash
+module purge
+module use /home/ald_team/modules
+module load aladin/2018b
+
+# make a tar file of model output files (PF${CNMEXP}arch${RR}+00${hh})
+# and save to some archive directory
+# in this case, the DOMAIN is always the model domain
+set -x
+AROOT=@ARCH_ROOT@
+ATAG=@ARCH_TAG:""@
+pp_name=arch$RR
+inline=@inline:no@
+
+if [[ $ATAG = "" ]] ; then
+  tarfile=${AROOT}_${RUNDATE}.tar
+else
+  tarfile=${AROOT}_${RUNDATE}_${ATAG}.tar
+fi
+
+adir=${ARCH_PATH}/$YYYY/$MM/$DD
+cd ${d_POST}
+cat > faucon.nam << EOF
+&NAMFAC
+NBA=28,
+NBLEV=1,
+ILEVEL(1)=0
+CPREF(1:28)=13*'SURF',8*'CLS',5*'ATMO',1*'MSL',1*'KB273'
+CNOMA(1:28)='PREC.EAU.GEC','PREC.EAU.CON','PREC.NEI.GEC','PREC.NEI.CON',
+           'RAYT DIR SUR','RAYT SOLA DE','RAYT THER DE',
+           'NEBUL.BASSE','NEBUL.HAUTE','NEBUL.MOYENN','NEBUL.TOTALE',
+           'PRESSION','CAPE.POS.F00',
+           'VENT.ZONAL','VENT.MERIDIEN','U.RAF.MOD.XFU','V.RAF.MOD.XFU',
+           'TEMPERATURE','MAXI.TEMPERAT','MINI.TEMPERAT',
+           'HUMI.RELATIVE',
+           'NEBUL.TOTALE','NEBUL.HAUTE','NEBUL.MOYENN','NEBUL.BASSE',
+           'HUMI TOTALE',
+           'PRESSURE','ISOT_ALTIT',
+/
+&NAMFAC
+NBA=5,
+CPREF(1:5)=5*'P',
+CNOMA(1:5)='GEOPOTENTIEL','TEMPERATURE','VENT_ZONAL', 'VENT_MERIDIEN',
+           'THETA_EQUIVA',
+NBLEV=6,
+ILEVEL(1:6)=100000,92500,85000,70000,50000,25000,
+/
+&NAMFAC
+NBA=2,
+CPREF(1:2)=2*'P',
+CNOMA(1:2)='HUMI_RELATIV','HUMI.SPECIFI',
+NBLEV=5,
+ILEVEL(1:5)=100000,92500,85000,70000,50000,
+/
+&NAMFAC
+NBA=6,
+CPREF(1:6)=6*'H',
+CNOMA(1:6)='PRESSURE','TEMPERATURE','VENT_ZONAL', 'VENT_MERIDIEN',
+          'HUMI.SPECIFI', 'THETA_EQUIVA',
+NBLEV=4,
+ILEVEL(1:4)=50,100,150,200,
+/
+EOF
+
+export DR_HOOK_NOT_MPI=1
+for hh in $(seq -f%02g 0 1 $HOURRANGE) ; do
+  infile=${d_POST}/PF${CNMEXP}${DOMAIN}+00$hh
+  outfile=${d_POST}/PF${CNMEXP}${pp_name}+00${hh}
+  rm -f $outfile # needed if there is a remaining file from before
+  faucon -f$infile -o$outfile -nfaucon.nam
+done
+
+# NOTE: the -n is vital when this script is run via ssh nohup ... < script
+#       apparantly, the fact that this script itself is piped directly to ssh causes confusion
+#
+ssh -n ${ARCH_HOST} "mkdir -p $adir"
+tar -cf $tarfile PF${CNMEXP}${pp_name}*
+rsync $tarfile ${ARCH_HOST}:$adir
+
+#archive_save $tarfile ${ARCH_HOST}:$adir
+
+
+@include <tail.h>

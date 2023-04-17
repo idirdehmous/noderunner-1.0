@@ -1,0 +1,393 @@
+! Namelist for GRIB conversion program (fagrib)
+! Local Table 228 (aladin)
+! resolution - be13
+! AROME VERSION: different precip fields!
+&NAMREF
+!------------------- General Settings -----------------------------
+ICENT=227,
+IMODEL=213,
+ITAB2=228,
+NBITS=12,
+MATO=1, MABO=1, MALE=1, MARI=1, ! Set Clipping Margins
+NULNORM=12
+!-------------------------------------------------------------------
+/
+&NAML
+ CPREF='MSL',
+ CNOMA='PRESSURE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=041,
+ ILEVTYPE=1, ! Level type: 200 (ECMWF) not allowed, replace by 1
+/
+! 2m-temperature 
+&NAML
+ CPREF='CLS',
+ CNOMA='TEMPERATURE',
+ NBLEV=1,
+ JLEVEL(1)=2,
+ IPARA=194,
+/
+! 2m-RH
+&NAML
+ CPREF='CLS',
+ CNOMA='HUMI.RELATIVE',
+ NBLEV=1,
+ JLEVEL(1)=2,
+ IPARA=196,
+ ZMUL=100., ! Multiply by 100 to get %
+/
+! 2m Dewpoint temperature
+&NAML
+ CPREF='CLS',
+ CNOMA='*TD*',
+ CNOMU='TEMPERATURE',
+ CNOMV='HUMI.RELATIVE', 
+ NBLEV=1,
+ JLEVEL(1)=2,
+ IPARA=195,
+/
+! 200m RH:
+&NAML
+ CPREF='H',
+ CNOMA='HUMI_RELATIV',
+ NBLEV=1,
+ JLEVEL(1)=200,
+ IPARA=106,
+ ZMUL=100., ! Multiply by 100 to get %
+/
+! 10m - wind
+&NAML
+ CPREF='CLS',
+ CNOMU='VENT.ZONAL   '
+ CNOMV='VENT.MERIDIEN'
+ LWIND=.FALSE.,
+ NBLEV=1,
+ JLEVEL(1)=10,
+ IPARU=192,
+ IPARV=193,
+/
+! Max and Min temperature
+&NAML
+ CPREF='CLS',
+ CNOMA='MAXI.TEMPERAT',
+ NBLEV=1,
+ JLEVEL(1)=2,
+ IPARA=198,
+/
+&NAML
+ CPREF='CLS',
+ CNOMA='MINI.TEMPERAT',
+ NBLEV=1,
+ JLEVEL(1)=2,
+ IPARA=199,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='PRESSION',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=40,
+/
+! Instantaneous Cloud fractions:
+&NAML
+ CPREF='SURF',
+ CNOMA='NEBUL.TOTALE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=217,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='NEBUL.CONVEC',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=213,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='NEBUL.BASSE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=214,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='NEBUL.MOYENN',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=215,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='NEBUL.HAUTE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=216,
+/
+! Accumulated Cloud fractions:
+&NAML
+ CPREF='ATMO',
+ CNOMA='NEBUL.TOTALE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=137,
+/
+&NAML
+ CPREF='ATMO',
+ CNOMA='NEBUL.CONVEC',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=133,
+/
+&NAML
+ CPREF='ATMO',
+ CNOMA='NEBUL.BASSE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=134,
+/
+&NAML
+ CPREF='ATMO',
+ CNOMA='NEBUL.MOYENN',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=135,
+/
+&NAML
+ CPREF='ATMO',
+ CNOMA='NEBUL.HAUTE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=136,
+/
+! Accumulated surface radiative fluxes
+&NAML
+ CPREF='SURF',
+ CNOMA='FLU.RAY.SOLA',
+ INBITS=8, 
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=150,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='FLU.RAY.THER',
+ INBITS=8, 
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=151,
+/
+! Classified accumulated precipitation (convert mm ~ kg/m2 in m)
+! AROME has only "convective" scale, so in fact it is "total"
+! but our GRIB table has no space for "total rain", "total sbnow", "total graupel"
+&NAML
+ CPREF='SURF',
+ CNOMA='ACCPLUIE    ',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=130,
+ ZMUL=.001,
+ LZERO=.TRUE.
+ ZBELO=1.E-12, ZRBEL=0.,
+ INBITS=12,
+ ILEVTYPE=1,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='ACCNEIGE    ',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=131,
+ ZMUL=.001,
+ LZERO=.TRUE.
+ ZBELO=1.E-12, ZRBEL=0.,
+ INBITS=12,
+ ILEVTYPE=1,
+/
+! Total accumulated precipitation
+&NAML
+ CPREF='SURF',
+ CNOMA='ACCPLUIE    ',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ ZMUL=.001
+ LGRIB=.FALSE.,
+ LZERO=.TRUE.
+ ZBELO=1.E-12, ZRBEL=0.,
+ INBITS=12,
+ ILEVTYPE=1,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='ACCNEIGE    ',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ ZMUL=.001,
+ LCUM=.TRUE.,
+ LGRIB=.FALSE.,
+ LZERO=.TRUE.
+ ZBELO=1.E-12, ZRBEL=0.,
+ INBITS=12,
+ ILEVTYPE=1,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='ACCGRAUPEL  ',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ ZMUL=.001,
+ LCUM=.TRUE.,
+ IPARA=132,
+ LZERO=.TRUE.
+ ZBELO=1.E-12, ZRBEL=0.,
+ INBITS=12,
+ ILEVTYPE=1,
+/
+! Total precipitable water
+&NAML
+ CPREF='ATMO',
+ CNOMA='HUMI TOTALE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=168,
+/
+! SURFACE
+! Soil temperature
+&NAML
+ CPREF='SURF',
+ CNOMA='TEMPERATURE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=200,
+/
+! Snow Mass (kg/sq m)
+&NAML
+ CPREF='SURF',
+ CNOMA='RESERV.NEIGE',
+ ZBELO=1.E-12, ZRBEL=0.,
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=219,
+/
+&NAML
+ CPREF='SURF',
+ CNOMA='RESERV.EAU',
+ ZBELO=1.E-12, ZRBEL=0.,
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=202,
+/
+! Deep soil temperature and moisture
+&NAML
+ CPREF='PROF',
+ CNOMA='TEMPERATURE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=201,
+ ILEVTYPE=1, ! Level type: 200 (ECMWF) not allowed, replace by 1
+/
+&NAML
+ CPREF='PROF',
+ CNOMA='RESERV.EAU',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=203,
+ ILEVTYPE=1, ! Level type: 200 (ECMWF) not allowed, replace by 1
+/
+! Instantaneous gust
+&NAML
+  CPREF='CLS',
+  CNOMU='U.RAF.MOD.XFU',
+  CNOMV='V.RAF.MOD.XFU',
+  NBLEV=1,
+  JLEVEL(1)=0,
+  IPARU=235,
+  IPARV=236,
+  LWIND=.FALSE.,
+/
+! Altitude Isotherm 0C
+&NAML
+ CPREF='KB27',
+ CNOMA='3ISOT_ALTIT',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=234,
+ ILEVTYPE=4, ! does not accept 113
+/
+! Instantaneous Surface CAPE
+&NAML
+  CPREF='SURF',
+  CNOMA='CAPE.POS.F00',
+  NBLEV=1,
+  JLEVEL(1)=0,
+  IPARA=240,
+/
+! Surf geopotential
+&NAML
+ CPREF='SURF',
+ CNOMA='GEOPOTENTIEL',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=1,
+ ILEVTYPE=1
+/
+!---------Pressure levels FIELDS-----------------
+&NAML
+ CPREF= 'P',
+ CNOMA= 'GEOPOTENTIEL',
+ NBLEV=15,
+ JLEVEL(1)=1000,975,950,925,900,850,800,750,700,600,500,400,300,200,100,
+ IPARA=096,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'TEMPERATURE',
+ NBLEV=15,
+ JLEVEL(1)=1000,975,950,925,900,850,800,750,700,600,500,400,300,200,100,
+ IPARA=098,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'HUMI_RELATIV',
+ NBLEV=15,
+ JLEVEL(1)=1000,975,950,925,900,850,800,750,700,600,500,400,300,200,100,
+ IPARA=106,
+ ZMUL=100., ! Convert to %
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'HUMI.SPECIFI',
+ NBLEV=15,
+ JLEVEL(1)=1000,975,950,925,900,850,800,750,700,600,500,400,300,200,100,
+ IPARA=105,
+/
+&NAML
+ CPREF= 'P',
+ CNOMU= 'VENT_ZONAL',
+ CNOMV= 'VENT_MERIDIE',
+ LWIND=.FALSE.,
+ NBLEV=15,
+ JLEVEL(1)=1000,975,950,925,900,850,800,750,700,600,500,400,300,200,100,
+ IPARU=107,
+ IPARV=108,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'VITESSE_VERT',
+ NBLEV=15,
+ JLEVEL(1)=1000,975,950,925,900,850,800,750,700,600,500,400,300,200,100,
+ IPARA=109, 
+/
+&NAML
+! Temperature Advection at 850, 700 and 500 hPa: 215 
+ CPREF= 'P',
+ CNOMA= 'TEMPERATURE',
+ CNOMU= 'VENT_ZONAL',
+ CNOMV= 'VENT_MERIDIE',
+ NBLEV=3,
+ JLEVEL(1)=850,700,500,
+ LADV=.TRUE.
+ IPARA=094,
+/
+

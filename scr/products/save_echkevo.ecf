@@ -1,0 +1,10 @@
+@include <head.h>
+@include <settings.h>
+
+set -x
+# Echkevo output is transferred to the same afd location as FA files:
+arch_path_echk=${ARCH_PATH}/ABOF/${CNMEXP,,}/$RR
+cd ${d_FC}
+afd_save ICMSH${CNMEXP}CHKOUT2 ${ARCH_HOST}:$arch_path_echk
+
+@include <tail.h>

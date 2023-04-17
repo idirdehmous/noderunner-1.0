@@ -1,0 +1,208 @@
+@manual
+This is the main surface data assimilation routine.
+If it fails, first check that all the other routines in the assimilation family have run correctly.
+Then re-run.
+If it fails again, and no other option is apparant, you can run the "skip_surface_assimilation" task.
+ATTENTION: skipping data assimilation is OK for a single cycle in emergencies, but should not be repeated.
+If these failures continue, check that there are no changes in e.g. observation processing.
+
+If the script fails at its 3rd attempt (ECF_TRYNO >= 3) in an operational context, it will skip the assimilation step by copying first_guess to analysis.
+@end
+
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+#function canari_error {
+#  echo "CANARI ERROR! ECF_TRYNO = $ECF_TRYNO"
+#  if [[ $RUNMODE = oper && $ECF_TRYNO -ge 3 ]] ; then
+#    echo Skip CANARI!
+#    ln -sf $d_GUESS/first_guess_orig $d_GUESS/first_guess_canari
+#    if [[ $SURFACE = "surfex" ]] ; then
+#      ln -sf ${d_GUESS}/first_guess_sfx  ${d_GUESS}/analysis_sfx
+#    fi
+#    ecflow_client --event SKIP_CANARI
+#    complete_and_exit
+#  else
+#    exit 1
+#  fi
+#}
+
+mkdir -p ${d_CANARI}
+cd ${d_CANARI}
+rm -f *
+
+d_ECMAsurf=${d_BATOR}/ECMA
+
+# normally, first_guess will be a link to the "processed" version
+#    with added ISBA fields and updated SST.
+
+f_guess=${d_GUESS}/first_guess
+
+ln -sf ${f_guess} ICMSHANALINIT
+cp ICMSHANALINIT ELSCFANALALBC000
+cp ICMSHANALINIT ICMSHANAL+0000
+
+if [[ $SURFACE = "surfex" ]] ; then
+  f_guess_sfx=${d_GUESS}/first_guess_sfx
+  cp $f_guess_sfx ICMSHANALINIT.sfx
+# OI_MAIN updates files "in-situ", so make a copy!
+  cp ICMSHANALINIT.sfx ICMSHANAL+0000.sfx
+fi
+
+#-- run-time data files
+
+# local (from NodeRunner)
+cp ${d_ETC}/POLYNOMES_ISBA fort.61 
+ln -sf ${d_ETC}/var.amv.bias_info.01 amv_bias_info
+# ??? rszcoef_fmt
+# larger
+ln -sf ${DATADIR_ECOCLIMAP}/* .
+ln -sf ${DATADIR_SAT}/amv_p_and_tracking_error .
+
+#-- Climate files
+ln -sf ${d_CLIM}/${DOMAIN}_${MM} ICMSHANALCLIM
+if [ $DD -le 15 ] ; then M2=$MMprev ; else M2=$MMnext ; fi
+ln -sf  ${d_CLIM}/${DOMAIN}_$M2 ICMSHANALCLI2
+
+[[ $SURFACE = surfex ]] && ln -sf ${d_CLIM}/${PGD_FILE} Const.Clim.sfx
+
+#--- general ODB settings
+export EC_PROFILE_HEAP=0
+export TO_ODB_ECMWF=0
+export TO_ODB_SWAPOUT=0
+export ODB_DEBUG=0
+export ODB_CTX_DEBUG=0
+export ODB_REPRODUCIBLE_SEQNO=2
+export ODB_STATIC_LINKING=1
+export ODB_IO_METHOD=1
+export ODB_ANALYSIS_DATE=${YYYY}${MM}${DD}
+export ODB_ANALYSIS_TIME=${RR}0000
+export TIME_INIT_YYYYMMDD=${YYYY}${MM}${DD}
+export TIME_INIT_HHMMSS=${RR}0000
+
+#--- ODB settings for CANARI
+export ODB_CMA=ECMA
+export ODB_ANALYSIS_DATE=${YYYY}${MM}${DD}
+export ODB_ANALYSIS_TIME=${RR}0000
+export ODB_IO_METHOD=1
+export ODB_STATIC_LINKING=1 
+export ODB_MERGEODB_DIRECT=0
+#export BASETIME=$DTG
+export ODB_ECMA_CREATE_POOLMASK=1
+export ODB_ECMA_POOLMASK_FILE=${d_ECMAsurf}/ECMA.poolmask
+export ODB_SRCPATH_ECMA=${d_ECMAsurf} 
+export ODB_DATAPATH_ECMA=${d_ECMAsurf} 
+export IOASSIGN=${d_ECMAsurf}/IOASSIGN
+export TIME_INIT_YYYYMMDD=${YYYY}${MM}${DD}
+export TIME_INIT_HHMMSS=${RR}0000
+export ODB_VERBOSE_OUT=1
+export ODB_IO_VERBOSE=0
+export ODB_LDA_METHOD=1
+export ODB_IGNORE_POOLMASKING=0
+
+#-- namelist constants
+#-- FIXME: most of these are NOT implemented
+var_OIEKF=0
+if [[ ${var_OIEKF} -eq 1 || ${var_OIEKF} -eq 2 ]] ; then
+  # canari is only used to grid the observations
+  # extra small values to limit influence of background when gridding observations
+  SIGH2MO=0.01
+  SIGT2MO=0.1
+else 
+  # normal values
+  SIGH2MO=0.1
+  SIGT2MO=1
+fi
+
+# Set SURFEX options 
+LAEICS=.FALSE.
+LDIRCLSMOD=.TRUE.
+
+# Snow analysis in CANARI
+# FIXME: Not used for now...
+if [ "$RR" -eq "06" ]; then
+  LAESNM=.TRUE.
+else
+  LAESNM=.FALSE.
+fi
+
+#--- namelist
+NAMELIST=$( for nn in $NAMELIST_CANARI ; do echo ${d_NAMELIST}/$nn ; done )
+
+#if [[ $MODEL = "arome" ]] ; then
+sed -e "s/!.*//"  \
+      -e "s/NPROC=.*/NPROC=$NPROC/" \
+      -e "s/NPRTRW=.*/NPRTRW=$NPROC/" \
+      -e "s/NPRGPNS=.*/NPRGPNS=$NPROC/" \
+      -e "s/NSTRIN=.*/NSTRIN=$NPROC/" \
+      -e "s/NSTROUT=.*/NSTROUT=$NPROC/" \
+      -e "s/CNMEXP=.*/CNMEXP=\'ANAL\'/" \
+      ${NAMELIST} > fort.4
+#      -e "s/{mp_type}/${MP_TYPE}/" \
+#      -e "s/{sigh2mo}/${SIGH2MO}/" \
+#      -e "s/{sigt2mo}/${SIGT2MO}/" \
+
+# surfex namelist
+[[ $SURFACE = surfex ]] && cp ${d_NAMELIST}/$NAMELIST_CANARI_SFX EXSEG1.nam
+
+#-- running the master (add || CANARI_FAIL=yes to avoid an error that is trapped by ecflow)
+ln -sf ${d_BIN}/MASTERODB .
+CANARI_FAIL=no
+$MPIRUN ./MASTERODB > out.log 2> err.log || CANARI_FAIL=yes
+
+if [[ $CANARI_FAIL = yes || ! -e ICMSHANAL+0000 ]] ; then
+  echo CANARI failure!
+  echo ======================================
+  echo NODE.001_01
+  cat NODE.001_01
+  echo ======================================
+  echo err.log
+  cat err.log
+#  canari_error
+  exit 1
+fi
+
+#-- save output in guess directory for next step
+if [[ ${var_OIEKF} -eq 1 || ${var_OIEKF} -eq 2 ]] ; then
+  # with EKF, canari is only used to grid the observations
+  mv ICMSHANAL+0000 ${d_GUESS}/griddedObs_${RUNDATE}
+else 
+# only the sfx part needed? NO
+# we also need the SURFTEMPERATURE field for later cycling!
+# ATTENTION: the atmospheric part no longer contains NH fields etc. !
+#
+
+  # LOCAL ARCHIVE 
+  cp   -f ICMSHANAL+0000  ${d_GUESS}/first_guess_canari
+  
+  # TMP ARCHIVE
+  ARCH=/hpcperm/cvah/testruns
+  mkdir -p  ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}
+
+  cp  -f  ${d_GUESS}/analysis             ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}/canari_analysis
+  cp  -f  ${d_GUESS}/first_guess          ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}/first_guess 
+   
+
+  # FIXME: if there is no 3dvar, shouldn't we call it analysis or so?
+  # FIXME: is re-linking "analysis" OK?
+  #        it's just for emergencies, of course
+#  ln -sf ${d_GUESS}/first_guess_canari ${d_GUESS}/analysis
+  [[ $SURFACE = surfex ]] && {
+#    rm ${d_GUESS}/analysis_sfx # IF we use cp : make sure it is no longer a link!
+    mv -f ICMSHANAL+0000.sfx ${d_GUESS}/analysis_sfx
+  }
+fi
+
+
+
+# try to avoid triggering next steps before the file is physically on the disc:
+sync
+# save updated ECMA data base to $d_ODB
+cd ${d_BATOR}
+tar -cvf  ECMA_canari_${RUNDATE}.tar  ECMA  ECMA.*
+mv ECMA_canari_${RUNDATE}.tar ${d_ODB}
+
+@include <tail.h>

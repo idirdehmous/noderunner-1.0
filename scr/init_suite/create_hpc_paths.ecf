@@ -1,0 +1,40 @@
+@manual
+This task creates the basic directories on the HPC.
+Those are on "scratch". But we may also create a link in the home directory.
+Note that it is important that @HPC_HOMEBASE@/log contains links to all NodeRunner suites
+because that is how the LOGSERVER finds all output from HPC tasks.
+
+But the actual tasks never reference HPC_HOMEBASE or LOGPATH. They only are aware of BASEDIR.
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+
+
+SSH="ssh -l${HPC_USER} ${HPC_HOST}"
+
+# you can only submit jobs if the output path for the log exists
+# on atos, troika solves this with the option create_output_dir
+# but other platforms may not have this.
+# that is why this task must run from the ecflow server side
+$SSH "[[ -d $BASEDIR/log ]] || mkdir -p $BASEDIR/log"
+if [[ $(boolean @SYNC_SCRATCH:no@) == yes ]] ; then
+  $SSH "[[ -d $BASEDIR2/log ]] || mkdir -p $BASEDIR2/log"
+fi
+
+# for the logserver, create an extra link in $LOGPATH
+LOGPATH=@HPC_LOGPATH:/home/${HPC_USER}/NR_log@
+$SSH "[[ -d $LOGPATH ]] || mkdir -p ${LOGPATH}"
+# the link required for the LOGSERVER
+# Note: we link via HPC_HOMEBASE so we only have to change 1 link when switching scratch
+$SSH "ln -sfn ${BASEDIR}/log ${LOGPATH}/$SUITE"
+
+## NOTE: this should be inside the cycles
+#dirlist="work log name etc bin clim packbin const"
+#[[ $ASSIMILATION == 'yes' ]] && dirlist="$dirlist cycle"
+
+#for ddir in $dirlist ; do
+#  ssh -l${HPC_USER} ${HPC_HOST} "mkdir -p $BASEDIR/$ddir"
+#done
+
+@include <tail.h>

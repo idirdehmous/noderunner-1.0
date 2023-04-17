@@ -1,0 +1,155 @@
+#! /bin/bash
+@manual
+This task prepares the LBCs (boundary conditions) for the forecast.
+The input may be from a global (or larger LAM) model or pre-prepared LBCs.
+
+If this task fails, first check whether it is due to missing input.
+If so, the matter must first be solved in the LBC retrieval.
+
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+set -x
+umask 0022
+
+LBC_LAG=$(( 10#$RR % 6 ))
+
+CLIM_IN=${d_CLIM}/${COUPLING_DOMAIN}_
+CLIM_OUT=${d_CLIM}/${DOMAIN}_
+
+# WORKING DIR 
+WDIR=${d_LBC}/e903
+mkdir -p ${WDIR}
+rm -f $WDIR/* 2>/dev/null
+cd ${WDIR}
+
+# with 3h coupling, you need the 12h LBC for a 10h forecast!
+#       so (only) in this task we extend HOURRANGE if necessary.
+if (( $HOURRANGE % $LBC_INC != 0 )) ; then
+  HOURRANGE=$(( $HOURRANGE + $LBC_INC ))
+fi
+
+
+hhlist=$(seq -f%02g 0  ${LBC_INC} ${HOURRANGE} )
+
+# FIXME: may not work on some platforms (ECCODES_DIR must be defined)
+export ECCODES_SAMPLE_PATH=${ECCODES_DIR}/share/eccodes/ifs_samples/grib1_mlgrib2
+export ECCODES_DEFINITION_PATH=${ECCODES_DIR}/share/eccodes/definitions
+
+
+# FUNCTIONS
+function IfsLbc ()  {
+
+d_INPUT=${d_LBC}/input
+CPL=E903	
+
+# PICK UP THE LBC'S FROM PREV RUN IF LAGGED  
+LBC_LAG=$(( 10#$RR % 6))
+if [ $LBC_LAG == 0 ] ; then
+   echo "Nothing to do "
+else
+   d_INPUT=$( echo $d_INPUT  | sed "s/$THIS_RUN/$PREV_RUN/g"  )
+fi
+
+for  hh in ${hhlist} ; do  
+
+    hc=$( printf "%02d" $((10#$hh + $LBC_LAG)) )
+
+ # CHECK SH 
+ if [ -f ${d_INPUT}/ICMSH${CPL}+0000${hc} ] ; 
+    then ln -sf ${d_INPUT}/ICMSH${CPL}+0000${hc}  ICMSH${CPL}+0000${hh}
+    else echo "IFS HRES file ICMSH${CPL}+0000${hh} missing !" ; fi 
+ # CHECK GG
+ if [ -f ${d_INPUT}/ICMGG${CPL}+0000${hc} ] ; 
+    then ln -sf ${d_INPUT}/ICMGG${CPL}+0000${hc}  ICMGG${CPL}+0000${hh} 
+    else echo "IFS HRES file ICMGG${CPL}+0000${hh} missing !" ; fi
+ # CHECK UA 
+ if [ -f ${d_INPUT}/ICMUA${CPL}+0000${hc} ] ;  
+    then ln -sf ${d_INPUT}/ICMUA${CPL}+0000${hc}  ICMUA${CPL}+0000${hh}
+    else echo "IFS HRES file ICMUA${CPL}+0000${hh} missing !" ; fi
+
+# THE INIT FILES ALREADY CHECKED 
+  ln -sf ${d_INPUT}/ICMSH${CPL}+00000${LBC_LAG} ICMSH${CPL}INIT
+  ln -sf ${d_INPUT}/ICMGG${CPL}+00000${LBC_LAG} ICMGG${CPL}INIT
+  ln -sf ${d_INPUT}/ICMUA${CPL}+00000${LBC_LAG} ICMUA${CPL}INIT
+done  
+}
+
+
+# GET IFS/HRES FILES   
+if [ ${COUPLING} == "EC" ] && [ ${REALTIME} == "no" ] ; then   IfsLbc  ; fi  
+
+# COMMON SCRIPT PART 
+# CLIM FILE 
+ln -sf ${CLIM_OUT}$MM const.clim.${DOMAIN}
+
+# Bring rrtm data
+ln -sf ${DATADIR_RUNTIME}/* .
+
+# NAMELIST 
+h0=""
+NFRPOS=$(( $HOURRANGE + 1 ))
+
+
+NAMELIST="$( for nn in $NAMELIST_PRE ; do echo ${d_NAMELIST}/$nn ; done )"
+
+# SCRIPT TO MONITOR FILES OUTPUT 
+monitor_script=`pwd`/monitor_script
+
+cat ${NAMELIST}     | sed -e "s/^!00/${h0}/" | grep -v '^!' | sed \
+    -e "s/!.*//"                   \
+    -e "s/NPROC=.*/NPROC=$NPROC/"  \
+    -e "s/{nproc}/$NPROC/"         \
+    -e "s/CNMEXP=.*/CNMEXP=$CPL/"  \
+    -e "s/CFPDOM(1)=.*/CFPDOM(1)=\'$DOMAIN\'/"       \
+    -e "s/NRFP3S=.*/NRFP3S=$(seq -s, 1 1 $NLEVELS)/" \
+    -e "s/NFRPOS=.*/NFRPOS=$NFRPOS/"                 \
+    -e "s/NFPSERVER=.*/NFPSERVER=1/" \
+    -e "s|CSCRIPT_PPSERVER=.*|CSCRIPT_PPSERVER=\'${monitor_script}\'|"  \
+  > fort.4
+
+
+
+
+cat > ${monitor_script} <<EOF
+#! /usr/bin/bash
+module load ecflow
+if [[ -e ECHFP ]] ; then
+  HH=\$(printf %02g \`cat ECHFP\`)
+  NLBC=\$(printf %03g \$(( 10#\$HH / $LBC_INC )))
+  echo "\$HH OK" >> monitor_log
+  mv PF${CPL}${DOMAIN}+00\$HH ${d_LBC}/ELSCF${CNMEXP}ALBC\$NLBC
+  ecflow_client --meter lbc_counter \$HH
+else
+  echo "First call, no output yet." >> monitor_log
+fi
+EOF
+chmod +x ./monitor_script
+
+
+export PATH=$PATH:/bin
+
+# RUN
+if [ ${COUPLING} == "EC" ] ; then 
+BINDIR=/home/cvah/pack/46t1_bf.07.OMPIIFC2140_EC.x/bin
+ln -sf  $BINDIR/MASTERODB    MASTERODB
+else  
+ln -sf  $BINDIR/MASTERODB    MASTERODB   # CY43t2 --> ARPEGE COUPLING 
+fi  
+
+#if [ -e ${d_BIN}/MASTERODB_PRE ] ; then
+#  ln -sf ${d_BIN}/MASTERODB_PRE MASTERODB
+#else
+#  ln -sf ${d_BIN}/MASTERODB MASTERODB
+#fi
+$MPIRUN ./MASTERODB >out.log 2>err.log || {
+    echo "An error occured in 903."
+    exit 1
+  }
+
+bash ./monitor_script
+
+@include <tail.h> 
+

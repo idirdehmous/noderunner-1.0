@@ -1,0 +1,132 @@
+#!/bin/bash
+@manual
+A generic post-processing task (FulPos).
+If this task fails, first check whether the input file is available.
+Sometimes the file is available with a few seconds delay because of file system latency. In that case, just rerun this task.
+If not, you may have to re-run the actual forecast.
+
+@end
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+set -x
+
+# loop over hours OR call the script for only 1 hour?
+hh=@PPHH:00@
+pp_name=@pp_name:""@
+if [[ $pp_name == "" ]] ; then
+  pp_name=@FAMILY1@
+fi
+
+
+
+
+# convert "d1;d2;d3" to a list
+domain_list=( $(echo @pp_domain@ | tr ":;" " ") )
+n_domains=${#domain_list[@@]}
+
+# prepare directory
+WDIR=${d_POST}/${pp_name}/${hh}
+mkdir -p ${WDIR}
+rm -f $WDIR/* 2>/dev/null
+cd ${WDIR}
+
+# we use the clim file valid at the lead time (LFPMOIS=.F.)
+# not necessarily at the start of the run
+VDATE=`dateincr -h $RUNDATE +$hh`
+MM2=`echo $VDATE | cut -c 5-6`
+
+ln -sf ${d_FC}/ICMSH${CNMEXP}+00$hh ICMSH${CNMEXP}INIT
+ln -sf ${d_CLIM}/${DOMAIN}_$MM2 Const.Clim
+
+for pp_domain in ${domain_list[@@]} ; do
+  ln -sf ${d_CLIM}/${pp_domain}_$MM2 const.clim.${pp_domain}
+done
+
+# surfex output?
+#ln -sf ${d_FC}/ICMSH${CNMEXP}+00$hh.sfx ICMSH${CNMEXP}INIT.sfx
+
+
+# Bring rrtm data (mcica, srtm:  not used?)
+#ln -sf ${DATADIR_RUNTIME}/RADRRTM .
+
+# Create namelist file
+# at leadtime +00: avoid cumulated fluxes! ("!00" lines)
+## use (( )) to be sure that 00 == 0
+# CF="^!00"
+
+if (( 10#$hh == 0 )) ; then
+  cfx='!'
+else
+  cfx=''
+fi
+
+# NAMELISTS
+cnmexp=`echo $CNMEXP | tr '[:upper:]' '[:lower:]'`
+NAMELIST_POS="${NAMELIST_POS} ao40_post_base_BE40a_l.nam"
+NAMELIST="$( for nn in $NAMELIST_POS ; do echo ${d_NAMELIST}/$nn ; done )"
+
+
+selection_file=${d_NAMELIST}/ao40_post_sel_${pp_name}.nam
+if [[ -e $selection_file ]] ; then
+  CNPPATH="."
+                    
+  cat ${d_NAMELIST}/ao40_post_sel_${pp_name}.nam | sed \
+  -e "s/^!00/$cfx/" \
+  -e "s/!.*//" \
+  > xxt00000000
+else
+  # there is no xxt0000000 file for fine-tuning the fields/levels
+  CNPPATH=" "
+fi
+
+# with the new FP namelist xxtGenerator, there shouldn't be as many replacements 
+# TODO: some of these substitutions may be removed
+# e.g. domain_list will now be pre-filled
+cat ${NAMELIST} | sed \
+  -e "s/^!00/$cfx/" \
+  -e "s/!.*//"  \
+  -e "s/{nproc}/$NPROC/" \
+  -e "s/NSTRIN=.*/NSTRIN=$NPROC/" \
+  -e "s/NSTROUT=.*/NSTROUT=$NPROC/" \
+  -e "s/CNMEXP=.*/CNMEXP=\'$CNMEXP\'/"   \
+  -e "s/CNPPATH=.*/CNPPATH=\'$CNPPATH\'/"     \
+> fort.4
+#  -e "s/{cfpdom}/${domain_list}/" \
+#  -e "s/NPRGPNS=.*/NPRGPNS=$NPRGPNS/" \
+#  -e "s/NPRGPEW=.*/NPRGPEW=$NPRGPEW/" \
+#  -e "s/NPRTRV=.*/NPRTRV=$NPRTRV/" \
+#  -e "s/NPRTRW=.*/NPRTRW=$NPRTRW/" \
+
+if [ -e ${d_BIN}/MASTERODB_POS ] ; then
+  ln -sf ${d_BIN}/MASTERODB_POS MASTERODB
+else
+  ln -sf ${d_BIN}/MASTERODB MASTERODB
+fi
+$MPIRUN ./MASTERODB >out.log 2>err.log
+
+# Now we may have to loop over the output domains
+#   rename and move the files
+
+
+# TEMPORARLY 
+ARCH=/hpcperm/cvah/testruns/
+for pp_domain in ${domain_list[@@]} ; do
+  # check for correct output
+  outfile=PF${CNMEXP}${pp_domain}+0000
+  # [ -e $outfile ] || ???
+
+  fafile=PF${CNMEXP}${pp_domain}+00$hh
+  #cp $outfile ${d_POST}/$fafile
+ 
+  mkdir -p  ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}
+  mv  ${outfile}  ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}/${fafile}
+done
+
+echo === FINISHED ===
+
+@include <tail.h>
+

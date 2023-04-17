@@ -1,0 +1,22 @@
+@include <head.h>
+@manual
+This maintenance script switches the suite to "delayed" mode. In this mode, the time triggers are ignored and coupling files are retrieved from the archive
+in stead of the working directory of the operational suite.
+
+Use this if the model needs to be re-run after the operational time window.
+Coupling data is retrieved from some archive, 
+because operational directories may be advanced by a day or more.
+
+This task may be triggered automatically at initialisation of a forecast run.
+
+@end
+
+ecflow_client --alter=change variable DELAY "yes" /@SUITE@
+## remove "-r" from QSUBOPT (don't use reserved queue in delayed mode)
+#if [[ @MODE@ == "oper" ]] ; then
+#  ecflow_client --alter=change variable SUBMIT_OPT " " /@SUITE@
+#fi
+ecflow_client --requeue  /@SUITE@/@FAMILY@/reset_delay
+
+@include <tail.h>
+

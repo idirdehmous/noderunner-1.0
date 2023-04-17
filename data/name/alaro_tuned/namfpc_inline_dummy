@@ -1,0 +1,15 @@
+! by adding this inline fullpos, we actually also manage to
+! include the fields in the historical files ICMSH...
+&NAMFPC
+CFPFMT='MODEL',
+NFPCLI=0,
+CFPDOM(1)='zzzz',
+CFPDIR='pf',
+CFPCFU(1)='ATMOHUMI LIQUIDE','ATMOHUMI SOLIDE','ATMOHUMI TOTALE',
+ 'SURFCHAL LATENTE','SURFCONTENU EAU','SURFDISSIP SURF',
+ 'SURFPRESSION SOL','SURFRAYT SOLA DE','SURFRAYT THER DE',
+/
+&NAMFPD
+/
+&NAMFPG
+/

@@ -1,0 +1,73 @@
+@manual
+This task makes sure all data (clim files, constants , B matrix, binaries) are available in the working directories. With a new suite, this can take several minutes, but the next time is much faster.
+
+In EXP mode, we do not rsync but just make links. That takes less space on scratch, but may be slower depending on where the data is located.
+
+If it fails, first rerun /init_suite/create_hpc_paths to make sure all basic paths are correct. Then try again.
+
+If failure persists, check whether the location of the data is correctly mounted and available.
+
+Do not set complete!
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+#datalist="clim const packbin etc" # "name bin" are on ecflow server
+# NOTE: in "oper" mode, we stage /all/ data and executables to $SCRATCH
+#           (reason: avoid some file system delays)
+#       for experiments, we use links anyway, to avoid filling $SCRATCH
+#           with TB's of identical copies of the clim's and bin's
+
+# check for work log name etc bin const (cycle)?
+
+[ -d $d_CLIM ]  || mkdir -p $d_CLIM
+[ -d $d_CONST ] || mkdir -p $d_CONST
+[ -d $d_ETC ]   || mkdir -p $d_ETC
+[ -d $d_BIN ]   || mkdir -p $d_BIN
+#[ -d $d_TOOLS ] || mkdir -p $d_TOOLS
+[ -d $d_NAMELIST ]  || mkdir -p $d_NAMELIST
+
+if [[ $RUNMODE == "oper" ]] ; then
+  rsync -avz $DPATH_CLIM/ $d_CLIM
+  rsync -avz $DPATH_CONST/ $d_CONST
+  rsync -avz $PACKDIR/bin/ $d_BIN
+# Special executables
+  [ "@MASTERODB_FC:@" ] && rsync -avz @MASTERODB_FC:@ ${d_BIN}/MASTERODB_FC
+  [ "@MASTERODB_POS:@" ] && rsync -avz @MASTERODB_POS:@ ${d_BIN}/MASTERODB_POS
+  [ "@MASTERODB_PRE:@" ] && rsync -avz @MASTERODB_PRE:@ ${d_BIN}/MASTERODB_PRE
+  [ "@BATOR:@" ] && rsync -avz @BATOR:@ ${d_BIN}/BATOR
+else
+  rm -rf ${d_CLIM}/* ${d_CONST}/* ${d_BIN}/*
+  ln -sf $DPATH_CLIM/*  $d_CLIM
+  ln -sf $DPATH_CONST/* $d_CONST
+  ln -sf $PACKDIR/bin/* $d_BIN
+  [ "@MASTERODB_FC:@" ] && ln -sf @MASTERODB_FC:@ ${d_BIN}/MASTERODB_FC
+  [ "@MASTERODB_POS:@" ] && ln -sf @MASTERODB_POS:@ ${d_BIN}/MASTERODB_POS
+  [ "@MASTERODB_PRE:@" ] && ln -sf @MASTERODB_PRE:@ ${d_BIN}/MASTERODB_PRE
+  [ "@BATOR:@" ] && ln -sf @BATOR:@ ${d_BIN}/BATOR
+fi
+
+
+#######################################
+
+if [[ $ASSIMILATION == "yes" ]] ; then
+  [[ -d $d_CYCLE ]] || mkdir -p $d_CYCLE
+  if [[ $RUNMODE == "oper" ]] ; then
+    rsync -avz $DPATH_ETC/ $d_ETC
+  else
+     echo "   "
+    #ln -sf $DPATH_ETC/* $d_ETC
+  fi
+
+  if [[ $ASSIM_UPPER == "3dvar" ]] ; then
+    [ -e $d_JB ] || mkdir -p $d_JB
+    rsync -avz $DPATH_JB/ $d_JB
+  fi
+fi
+
+echo === FINISHED ===
+@include <tail.h>
+

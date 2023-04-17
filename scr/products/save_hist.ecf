@@ -1,0 +1,29 @@
+@manual
+This task saves the full model output ("historical files") to archive.
+The main purpose would probably be /nesting/ or if you really need
+full model output for validation.
+
+At RMI, these historical files are available for 1 month.
+@end
+
+@include <head.h>
+@include <settings.h>
+
+# make a tar file of model output files (ICMSH****)
+# and save to some archive directory
+# in this case, the DOMAIN is always the model domain
+set -x
+AROOT=@ARCH_ROOT@
+ATAG=@ARCH_TAG:""@
+pp_name=@pp_name:$DOMAIN@
+
+cd ${d_FC}
+
+tarfile=${AROOT}_${DD}${RR}.tar
+tar -cf $tarfile ICMSH${CNMEXP}+*
+
+adir=${ARCH_PATH}/RECENT
+ssh -n ${ARCH_HOST} mkdir -p $adir
+rsync $tarfile ${ARCH_HOST}:$adir && rm -f $tarfile
+
+@include <tail.h>

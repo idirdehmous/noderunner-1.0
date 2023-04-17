@@ -1,0 +1,59 @@
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+#-- create directory
+#RecreateDir ${d_ADDFIELDS}
+mkdir -p ${d_ADDFIELDS}
+cd ${d_ADDFIELDS}
+rm -f *
+
+############################
+#--- get the first guess
+############################
+# TODO: blend the first guess NH fields with new INIT lower resolution ?
+# should be done after CANARI (because CANARI is HS anyway)
+#f_guess=${d_GUESS}/ICMSHAO40+0006
+# "cold start"
+#
+first_guess=${d_GUESS}/first_guess_orig
+if [[ ! -e ${first_guess} ]] ; then
+  echo NO FIRST GUESS !
+  exit 1
+else
+  echo Found cycle data.
+fi
+
+# basically FP (~e927) 
+#FIXME: which version of first guess?
+# for upper air (screening, 3dvar): AFTER canari!
+# 
+cp ${first_guess} PF${CNMEXP}${DOMAIN}+0000
+
+# get lbc (for up-to-data data)
+ln -sf ${d_LBC}/input/LBC_00 ICMSH${CNMEXP}INIT
+
+# Bring climate files (for constant fields)
+ln -sf ${d_CLIM}/${COUPLING_DOMAIN}_$MM Const.Clim
+ln -sf ${d_CLIM}/${DOMAIN}_$MM const.clim.${DOMAIN}
+
+# NAMELIST
+NAMELIST_ADDFIELDS="arom_nhsx_addsurf ${DOMAIN}.${NLEVELS} namfpc_addsurf"
+NAMELIST="$( for nn in $NAMELIST_ADDFIELDS ; do echo ${d_NAMELIST}/$nn ; done )"
+
+cat $NAMELIST | sed \
+  -e "s/CNMEXP=.*/CNMEXP=$CNMEXP/"           \
+  -e "s/CFPDOM(1)=.*/CFPDOM(1)='${DOMAIN}'/"   \
+  -e "s/NPROC=.*/NPROC=$NPROC/" \
+  > fort.4
+
+ln -sf ${d_BIN}/MASTERODB .
+$MPIRUN ./MASTERODB >out.log 2>err.log || {
+  echo "There was a problem"
+  exit 1
+  }
+
+cp ./PF${CNMEXP}${DOMAIN}+0000 ${d_GUESS}/first_guess_isba
+ln -sf ${d_GUESS}/first_guess_isba ${d_GUESS}/first_guess
+
+@include <tail.h>

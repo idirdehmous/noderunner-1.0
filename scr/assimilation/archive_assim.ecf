@@ -1,0 +1,62 @@
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+
+
+# TEMPORARLY !
+ARCH=/hpcperm/cvah/testruns/
+
+
+mkdir -p  ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}
+cp -f analysis  ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}/${fafile}
+
+
+-rw-r--r-- 1 cvah be 306388992 Apr 17 19:07 first_guess_canari
+-rw-r--r-- 1 cvah be 123740160 Apr 17 19:08 analysis
+
+
+
+
+
+
+
+arch_odb=no
+arch_cycle=no
+# NOTE: we use the "archive_save" function defined in settings_local.h
+
+# 1. archive all ODB versions (for OBSMON)
+if [[ ${arch_odb} == yes ]] ; then
+  cd ${d_ODB}
+  ODB_PATH=@ODB_PATH:/mnt/HDS_ALADIN/ALADIN/OBSERVATIONS/ODB/@
+  archpath=${ODB_PATH}/${YYYY}/${MM}/${DD}/${RR}
+#  ssh  -l ${ARCH_USER} ${ARCH_HOST} "mkdir -p  $archpath"
+#  scp *.tar ${ARCH_USER}@@${ARCH_HOST}:${archpath}
+  for ff in *.tar ; do
+    archive_save $ff ${ARCH_HOST}:$archpath
+  done
+  # ECMA surface & upper
+#  scp ECMA_surface_${RUNDATE}.tar  ${ARCH_USER}@@${ARCH_HOST}:${archpath}
+#  scp ECMA_upper_${RUNDATE}.tar    ${ARCH_USER}@@${ARCH_HOST}:${archpath}
+  # ECMA surface after CANARI
+#  scp ECMA_canari_${RUNDATE}.tar   ${ARCH_USER}@@${ARCH_HOST}:${archpath}
+  # CCMA pre-screening
+#  scp CCMA_${RUNDATE}.tar          ${ARCH_USER}@@${ARCH_HOST}:${archpath}
+  # CCMA after screening
+#  scp CCMA_screen_${RUNDATE}.tar   ${ARCH_USER}@@${ARCH_HOST}:${archpath}
+fi
+
+# 2. archive all cycle data (analysis, first guess, ...)
+arch_cycle=yes 
+if [[ ${arch_cycle} == yes ]] ; then
+  cycledir=${ARCH_PATH}/CYCLE/$YYYY/$MM/$DD/$RR
+  d_FG=${d_CYCLE}/$(date -u -d "$YYYY$MM$DD $RR" +"%Y/%m/%d/%H")
+  [ -e ${d_GUESS}/analysis ] && archive_save ${d_GUESS}/analysis ${ARCH_HOST}:$cycledir
+  [ -e ${d_FG}/first_guess ] && archive_save ${d_FG}/first_guess ${ARCH_HOST}:$cycledir
+
+  if [[ $SURFACE == "surfex" ]] ; then
+    [ -e ${d_GUESS}/analysis_sfx ] && archive_save ${d_GUESS}/analysis_sfx ${ARCH_HOST}:$cycledir
+    [ -e ${d_FG}/first_guess_sfx ] && archive_save ${d_FG}/first_guess_sfx ${ARCH_HOST}:$cycledir
+  fi
+fi
+
+@include <tail.h>

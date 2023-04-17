@@ -1,0 +1,91 @@
+#!/bin/bash
+@manual
+This is the "FEMARS" task. From (GRIB) model output it produces differences
+that will be used (in "FESTAT") to produce a B matrix.
+@end
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+DIFFLEN=@DIFF_LEN@
+NMEMBS=@NMEMBERS@
+B_PART=@B_PART@ # ens_su or ens_da
+
+# WORKDIR
+WDIR=${WORKDIR}/$(basename @ECF_NAME@)
+mkdir -p  $WDIR
+cd $WDIR
+rm -rf *
+
+# INITILIZE ECFLOW COUNTER
+ifile=0
+ecflow_client --meter=N_differences ${ifile}
+
+# CREATE DIRECTORY TO SAVE gribdiff FILES
+d_OUT=@d_OUT@
+mkdir -p ${d_OUT}/@B_PART@/gribdiff
+
+# LOOP OVER THE DATE LIST
+DATES=$( ls ${d_OUT}/@B_PART@/01 ) 
+
+# GET INPUT FILES
+# CONST
+ln -sf  ${DATADIR_RUNTIME}/*    .
+
+# ECOCLIM
+ln -sf  ${DATADIR_ECOCLIMAP}/ecoclimapI_covers_param.bin .
+ln -sf  ${DATADIR_ECOCLIMAP}/ecoclimapII_eu_covers_param.bin .
+
+# NAMEL SURFEX
+ln -sf  ${d_NAMELIST}/EXSEG1_e001_arome   EXSEG1.nam
+
+# BINARIES
+ln -sf  ${{d_BIN}}/MASTERODB   MASTERODB
+
+# NAMELIST
+CUSTOP=h@DIFF_LEN@
+sed   -e   "s/{cnmexp}/${CNMEXP}/"       \
+      -e   "s/{nproc}/${NPROC}/"         \
+      -e   "s/{tstep}/${TIMESTEP}/"         \
+      ${d_NAMELIST}/namel_femars_cy43   > fort.4
+
+
+
+for dt in $DATES  ; do
+  for i in $( seq  1 ${NMEMBS}) ; do
+
+# SET COUNTERS FOR MEMBER DIFFERENCES 
+# MEMBERS DIFF
+# m1-m2 , m2-m3 , m3-m4 , m4-m1
+    m2=$( printf "%02d" ${i}  )
+    if  [ $i -eq ${NMEMBS} ] ; then
+      m1=$(printf "%02d" 1 )
+    else
+      m1=$( printf "%02d"  $(( 10#${m2} + 1 )))
+    fi
+
+# FIXME: DIFFLEN rather sounds like NMC method. Maybe use other name?
+    histfile=ICMSH${CNMEXP}+00$(printf "%02d" ${DIFFLEN})
+    ln -sf   ${d_OUT}/${B_PART}/${m1}/${dt}/$histfile ICMSH${CNMEXP}INIT
+    ln -sf   ${d_OUT}/${B_PART}/${m2}/${dt}/$histfile ICMSH${CNMEXP}ANIN
+    cp ICMSH${CNMEXP}INIT ICMSH${CNMEXP}FGIN
+
+    $MPIRUN  ./MASTERODB   > out.log   2>err.log
+
+    if  [ -f gribdiff ] ; then  
+      ifile=$(( 10#${ifile} + 1 ))
+      ecflow_client --meter=N_differences ${ifile}
+      # COUNTER FOR gribdiff FILES 
+      igrib=$(printf "%03d"  ${ifile})  
+
+      mv  gribdiff    ${d_OUT}/${B_PART}/gribdiff/gribdiff_${igrib}
+    else  
+      echo "Failed to create gribdiff for member${m2} - member${m1}"
+      exit 123 
+    fi  
+
+  done  
+done  
+@include <tail.h>

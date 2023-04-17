@@ -1,0 +1,412 @@
+#!/bin/bash
+@include <head_hpca.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+module load ecflow/4.9.0
+
+MPILAUNCH="mpiexec_mpt "
+
+ulimit -c unlimited
+ulimit -s unlimited
+
+
+# OpenMP TUNNING 
+export OMP_NUM_THREADS=1
+export MP_SINGLE_THREAD="yes"
+export OMP_DYNAMIC="false"
+export OMP_STACKSIZE='1G'
+export DR_HOOK=-1
+export DR_HOOK_IGNORE_SIGNALS=-1
+
+export KMP_AFFINITY=disabled
+export KMP_STACKSIZE=1g
+export MPI_MEMMAP_OFF=true
+export MPI_XPMEM_ENABLED=false
+export MP_SHARED_MEMORY=no
+export DR_HOOK_NOT_MPI=""
+export MPI_XPMEM_ENABLED=disabled
+export MPI_SHEPHERD=true
+
+
+WDIR=${d_BATOR}
+[[ -e $WDIR ]] || mkdir -p $WDIR
+cd $WDIR
+rm -rf *
+
+YYYY=`echo $RUNDATE | cut -c 1-4`
+MM=`echo $RUNDATE | cut -c 5-6`
+DD=`echo $RUNDATE | cut -c 7-8`
+HH=`echo $RUNDATE | cut -c 9-10`
+
+# BATOR FOR MODE-S 
+BINDIR1=/home/idehmous/pack/43t2_bf.11.modes_INTEL1700c.x/bin
+BINDIR=/home/idehmous/pack/43t2_bf11_bator#3/bin 
+# BINARIES 
+#---------------------------------
+ln -sf $BINDIR/BATOR BATOR
+ln -sf $BINDIR/odbtools.x shuffle
+ln -sf $BINDIR/ioassign ioassign
+
+# IOASSIGN SCRIPTS 
+#---------------------------------
+# create_ioassign MUST be in the PATH (called from merge_ioassign)
+export PATH=.:$PATH
+ln -sf ${CREATE_IOASSIGN}  create_ioassign
+ln -sf ${MERGE_IOASSIGN}   merge_ioassign
+
+
+# ODB SETTING 
+#---------------------------------
+export EC_PROFILE_HEAP=0
+export TO_ODB_ECMWF=0
+export TO_ODB_SWAPOUT=0
+export ODB_DEBUG=0
+export ODB_CTX_DEBUG=0
+export ODB_REPRODUCIBLE_SEQNO=2
+export ODB_STATIC_LINKING=1
+export ODB_IO_METHOD=1
+export ODB_ANALYSIS_DATE=${YYYY}${MM}${DD}
+export ODB_ANALYSIS_TIME=${HH}0000
+export TIME_INIT_YYYYMMDD=${YYYY}${MM}${DD}
+export TIME_INIT_HHMMSS=${HH}0000
+
+
+# PATH TO BUFR TABLES
+#--------------------
+export BUFR_TABLES=/home/ald_team/software/auxlibs/3.1_i17c/lib/bufrtables.383MF/mf_bufrtables/
+export EC_PROFILE_HEAP=0
+
+# BLACKLIST FILES
+#---------------------------------
+cp -f ${d_ETC}/LISTE_NOIRE_DIAP LISTE_NOIRE_DIAP
+cp -f ${d_ETC}/LISTE_LOC LISTE_LOC
+
+# NAMELIST LAMFLAG 
+#---------------------------------
+cp -f ${d_NAMELIST}/namel_lamflag_$DOMAIN NAM_lamflag
+
+# BUFR CONFIGURATION FILE
+#---------------------------------
+              
+cp -f ${d_ETC}/param-cy43.cfg param.cfg
+
+# NAMELIST GPS ( UPDATED FOR AROME DOMAIN )
+#---------------------------------
+cp -f ${d_ETC}/list_gpssol_ar13   list_gpssol
+
+# NAMELIST BATOR 
+#---------------------------------
+cp -f ${d_NAMELIST}/namel_bator NAMELIST
+
+# CHECK EXISTENCE AND FILESIZE OF OBSERVATION FILES 
+# IN OBS DIRECTORY  
+
+#OBSTYPE=(synop amdar temp gpssol radar )
+#types_BASE=()
+#for obstype in ${OBSTYPE[*]}; do  
+#    case ${obstype}  in   
+#        radar)
+#        types_BASE+=($obstype) ;; 
+#
+#        *)
+#        obsfile=${obstype}_${RUNDATE}00.bufr 
+#        if [ -f  ${d_OBS}/${obsfile} ] ; then 
+#           size=$(stat -c%s ${d_OBS}/${obstype}_${RUNDATE}00.bufr )       
+#           if [ $size -gt  200 ] ; then 
+#              types_BASE+=($obstype) 
+#           else 
+#              echo "File ${obsfile}  doesn't contain BUFR messages"
+#           fi
+#        else  
+#              echo "File ${obsfile} doesn't exist"
+#        continue 
+#    fi 
+#esac 
+#done   
+
+
+# LOOP FOR SUB-BASES
+#types_BASE="synop amdar temp" #
+# CHANGE THE types_BASE VARIABLE INTO ARRAY 
+
+
+BatorSurface () {
+
+rm -rf ${d_BATOR}/ECMA*
+types_BASE=$1 
+
+for base in ${types_BASE[*]}
+do
+
+# ENVIRONNEMENT ODB
+  export ODB_SRCPATH_ECMA=$WDIR/ECMA.${base}
+  export ODB_DATAPATH_ECMA=$WDIR/ECMA.${base}
+  export IOASSIGN=$WDIR/IOASSIGN
+  export ODB_CMA=ECMA
+  export BATOR_NBPOOL=${OBS_NPOOL}
+  export BATOR_LAMFLAG=1
+
+# data/time settings (new from >= cy42)
+# THIS MAY DEPEND ON OBS TYPE !!!
+  export BATOR_WINDOW_LEN=180
+  export BATOR_WINDOW_SHIFT=-90
+  export BATOR_NBSLOT=1
+  export BATOR_SLOT_LEN=0
+  export BATOR_CENTER_LEN=0
+
+# CREATE IOASSIGN FOR GIVEN SUB-BASE
+# note: by default this script is not executable
+# so use ksh or do chmod +x on all scripts in the pack
+export PATH=$BINDIR:$PATH
+  ksh ./create_ioassign -l${ODB_CMA} -n${BATOR_NBPOOL}
+
+##  BEGINDATE=`dateincr -h $RUNDATE -24`
+#  BEGINDATE=`dateincr -m ${RUNDATE}00 -90`
+#  ENDDATE=`dateincr -m ${RUNDATE} +89`
+#  echo $BEGINDATE  > ficdate 
+#  echo $ENDDATE >> ficdate 
+
+if [ ${base}    == "synop" ]  ; then  
+  cp ${d_OBS}/synop_${RUNDATE}00.bufr BUFR.synop
+  echo "$base    $base     BUFR     $base "  > batormap
+else 
+   echo "$base is not available in obs list !"
+fi 
+
+  # EXECUTION DE BATOR 
+#-------------------------------
+
+  $MPILAUNCH -np 1  ./BATOR > out.$base 2> err.$base
+
+# CHECK THE BASE DIRECTORY GENARATION  
+# NO DIRECTORY IS GENERATED FOR A GIVEN 
+# OBSTYPE IF AN ERROR IS OCCURED  
+  if  [ -d  ECMA.${base} ] ; then 
+       cp -f  IOASSIGN ECMA.${base}/IOASSIGN
+  else  
+      echo "Directory ECMA.${base} doesn't exist for the base :  $base "
+      continue  
+  fi 
+
+done
+
+# SAVE THE ODB 
+tar cvf ECMA_raw.tar ECMA.*
+
+# MERGE SUB-BASES 
+# NAME OF CREATED DATABASE 
+#------------------------------------
+out_BASE=ECMA     #"VERY IMPORTANT"
+#------------------------------------
+export SWAPP_ODB_IOASSIGN=$WDIR/ioassign
+export ODB_SRCPATH_ECMA=$WDIR/${out_BASE}
+export ODB_DATAPATH_ECMA=$WDIR/${out_BASE} 
+
+# CHECK THAT THE ODB(S) ARE CORRECTELY WRITTEN 
+# LOOK FOR THE "body" TABLE IN THE FIRST POOL 
+# UPDATE THE ODB LIST FOR MERGE  ! 
+# IT COULD HAPPEN THAT A DIRECTORY EXISTS FOR A GIVEN 
+# SUB-BASE BUT IS EMPTY ( WITHOUT POOL DIRECTORY AND "body" TABLE)
+OBSTYPE=$1 
+types_BASE=()
+for obstype  in ${OBSTYPE[*]}; do
+    if [ -f  ECMA.${obstype}/1/body  ] ; then
+        types_BASE+=($obstype)
+    else
+      echo "Data are not written for the base :  $obstype"
+      rm -rf   ECMA.${obstype}
+      continue
+    fi
+done
+
+# CREATE THE MERGED BASE 
+liste=""
+for base in ${types_BASE[*]}; do
+  liste=${liste}" -t "${base}
+done
+./merge_ioassign -d $WDIR ${liste}
+unset liste
+
+export IOASSIGN=$WDIR/${out_BASE}/IOASSIGN 
+export ODB_ECMA_CREATE_POOLMASK=1 
+export ODB_ECMA_POOLMASK_FILE=$WDIR/${out_BASE}/ECMA.poolmask 
+export TIME_INIT_YYYYMMDD=${YYYY}${MM}${DD}
+export TIME_INIT_HHMMSS=${HH}0000
+
+# GET THE NPOOL FROM .dd FILE 
+na=`head -5 ${out_BASE}/ECMA.dd | tail -1`
+nb=1
+
+# RUN ODBTOOLS 
+$MPILAUNCH -np 1 ./shuffle -i${out_BASE} -o${out_BASE} -b${nb} -a${na} >out.log.$base 2>&1
+
+tar cvf ECMA_merged.tar ${out_BASE} ECMA.synop ECMA 
+
+# COPY IT TO "ODBDIR" FOR SCREENING AND CANARI 
+mkdir -p $d_ODB
+rm -rf $d_ODB/ECMA_surface*
+mv      ECMA_merged.tar ${d_ODB}/ECMA_surface_${RUNDATE}.tar
+
+}
+
+
+
+
+function BatorAltitude ()  {
+OBSTYPE=$1 
+
+types_BASE=()
+for obstype in ${OBSTYPE[*]}; do  
+    case ${obstype}  in   
+        radar)
+        types_BASE+=($obstype) ;; 
+        *)
+        obsfile=${obstype}_${RUNDATE}00.bufr 
+        if [ -f  ${d_OBS}/${obsfile} ] ; then 
+           size=$(stat -c%s ${d_OBS}/${obstype}_${RUNDATE}00.bufr )       
+           if [ $size -gt  200 ] ; then 
+              types_BASE+=($obstype) 
+           else 
+              echo "File ${obsfile}  doesn't contain BUFR messages"
+           fi
+        else  
+              echo "File ${obsfile} doesn't exist"
+        continue 
+    fi 
+esac 
+done  
+
+for base in ${types_BASE[*]}
+do
+
+# ENVIRONNEMENT ODB
+  export ODB_SRCPATH_ECMA=$WDIR/ECMA.${base}
+  export ODB_DATAPATH_ECMA=$WDIR/ECMA.${base}
+  export IOASSIGN=$WDIR/IOASSIGN
+  export ODB_CMA=ECMA
+  export BATOR_NBPOOL=${OBS_NPOOL}
+  export BATOR_LAMFLAG=1
+
+# data/time settings (new from >= cy42)
+# THIS MAY DEPEND ON OBS TYPE !!!
+  export BATOR_WINDOW_LEN=180
+  export BATOR_WINDOW_SHIFT=-90
+  export BATOR_NBSLOT=1
+  export BATOR_SLOT_LEN=0
+  export BATOR_CENTER_LEN=0
+
+# CREATE IOASSIGN FOR GIVEN SUB-BASE
+# note: by default this script is not executable
+# so use ksh or do chmod +x on all scripts in the pack
+export PATH=$BINDIR:$PATH
+  ksh ./create_ioassign -l${ODB_CMA} -n${BATOR_NBPOOL}
+
+if [ ${base}    == "amdar" ]  ; then
+  cp ${d_OBS}/amdar_${RUNDATE}00.bufr BUFR.amdar
+  echo "$base    $base     BUFR     $base "  > batormap
+elif [ ${base}  == "temp" ]   ; then
+  cp ${d_OBS}/temp_${RUNDATE}00.bufr  BUFR.temp
+  echo "$base    $base     BUFR     $base "  > batormap
+
+elif [ ${base}  == "gpssol" ] ; then
+  cp ${d_OBS}/gpssol_${RUNDATE}00.bufr  BUFR.gpssol
+  echo "$base    $base     BUFR     $base "  > batormap
+
+elif [ ${base}  == "modes" ] ; then  
+  cp ${d_OBS}/modes_${RUNDATE}00.bufr  BUFR.modes
+  echo "$base    $base     BUFR     $base "  > batormap
+
+elif [ $base  == "radar" ]    ; then
+   i=0 
+   for file in  ${d_OBS}/HDF5*  ; do
+       i=$(( $i + 1 ))
+       echo "radar   site${i}   HDF5    odim" >> batormap
+       ln -sf ${d_OBS}/HDF5.site${i}      HDF5.site${i}
+   done
+
+else
+   echo "$base is not available in obs list !"
+fi
+
+# RUN BATOR 
+#-------------------------------
+
+  $MPILAUNCH -np 1  ./BATOR > out.$base 2> err.$base
+
+# CHECK THE BASE DIRECTORY GENARATION  
+# NO DIRECTORY IS GENERATED FOR A GIVEN 
+# OBSTYPE IF AN ERROR IS OCCURED  
+  if  [ -d  ECMA.${base} ] ; then
+       cp -f  IOASSIGN ECMA.${base}/IOASSIGN
+  else
+      echo "Directory ECMA.${base} doesn't exist for the base :  $base "
+      continue
+  fi
+
+done
+
+# SAVE THE ODB 
+tar cvf ECMA_raw.tar ECMA.*
+
+# MERGE SUB-BASES 
+# NAME OF CREATED DATABASE 
+#------------------------------------
+out_BASE=ECMA     #"VERY IMPORTANT"
+#------------------------------------
+export SWAPP_ODB_IOASSIGN=$WDIR/ioassign
+export ODB_SRCPATH_ECMA=$WDIR/${out_BASE}
+export ODB_DATAPATH_ECMA=$WDIR/${out_BASE}
+# CHECK THAT THE ODB(S) ARE CORRECTELY WRITTEN 
+# LOOK FOR THE "body" TABLE IN THE FIRST POOL 
+# UPDATE THE ODB LIST FOR MERGE  ! 
+# IT COULD HAPPEN THAT A DIRECTORY EXISTS FOR A GIVEN 
+# SUB-BASE BUT IS EMPTY ( WITHOUT POOL DIRECTORY AND "body" TABLE)
+OBSTYPE=$1 
+types_BASE=()
+for obstype  in ${OBSTYPE[*]}; do
+    if [ -f  ECMA.${obstype}/1/body  ] ; then
+        types_BASE+=($obstype)
+    else
+      echo "Data are not written for the base :  $obstype"
+      rm -rf   ECMA.${obstype}
+      continue
+    fi
+done
+
+# CREATE THE MERGED BASE 
+liste=""
+for base in ${types_BASE[*]}; do
+  liste=${liste}" -t "${base}
+done
+./merge_ioassign -d $WDIR ${liste}
+unset liste
+
+export IOASSIGN=$WDIR/${out_BASE}/IOASSIGN
+export ODB_ECMA_CREATE_POOLMASK=1
+export ODB_ECMA_POOLMASK_FILE=$WDIR/${out_BASE}/ECMA.poolmask
+export TIME_INIT_YYYYMMDD=${YYYY}${MM}${DD}
+export TIME_INIT_HHMMSS=${HH}0000
+
+# GET THE NPOOL FROM .dd FILE 
+na=`head -5 ${out_BASE}/ECMA.dd | tail -1`
+nb=1
+
+# RUN ODBTOOLS 
+$MPILAUNCH -np 1 ./shuffle -i${out_BASE} -o${out_BASE} -b${nb} -a${na} >out.log.$base 2>&1
+
+tar cvf ECMA_merged.tar ${out_BASE} ECMA.*
+
+# COPY IT TO "ODBDIR" FOR SCREENING AND CANARI 
+mkdir -p $d_ODB
+rm -rf $d_ODB/ECMA_altitude*
+
+mv   ECMA_merged.tar ${d_ODB}/ECMA_altitude_${RUNDATE}.tar  
+}
+
+
+BatorAltitude "amdar temp gpssol radar"
+BatorSurface  "synop"
+
+
+@include <tail.h>

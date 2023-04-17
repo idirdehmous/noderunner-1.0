@@ -1,0 +1,55 @@
+@manual
+A generic post-processing task: "exporting" output to some path.
+If this task fails, first check whether the input file is available.
+Sometimes the file is available with a few seconds delay because of file system latency.
+In that case, just rerun this task.
+
+If not, you may have to re-run the actual forecast.
+
+The export should be done separated from the fullpos run itself,
+because wrtiting from a compute node is not always reliable.
+
+Generically, this routine could export to any remote file system. 
+
+Note that this routine is for separate HOURLY output files.
+So it is not used for storing all output together in a tar file.
+
+@end
+@include <head.h>
+@include <settings.h>
+
+set -x
+
+hh=@PPHH:00@
+domain_list=( $(echo @domain_list@ | tr ":;" " ") )
+grib_list=( $(echo @grib_list@ | tr ":;" " ") )
+
+
+# we use RMI-specific afd_save() for scp with special care for permissions and temporary name
+
+if [[ $domain_list ]] ; then
+  n_domains=${#domain_list[@@]}
+  arch_path_fa=${ARCH_PATH}/ABOF/${CNMEXP,,}/$RR
+  
+  for pp_domain in ${domain_list[@@]} ; do
+    fafile=PF${CNMEXP}${pp_domain}+00$hh
+    afd_save ${d_POST}/$fafile ${ARCH_HOST}:$arch_path_fa
+  done
+fi
+
+if [[ $grib_list ]] ; then
+  n_grib=${#grib_list[@@]}
+  # GRIB files repository is simply the base path!
+  # not .../GRIB/${CNMEXP,,}/$RR
+  arch_path_grib=${ARCH_PATH}
+  
+  for g_root in ${grib_list[@@]} ; do
+    gribfile=${g_root}${MM}${DD}${RR}_$hh
+    afd_save ${d_POST}/$gribfile ${ARCH_HOST}:$arch_path_grib
+  done
+fi
+
+echo === FINISHED ===
+
+@include <tail.h>
+

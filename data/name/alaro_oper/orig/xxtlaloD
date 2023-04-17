@@ -1,0 +1,240 @@
+! $Id$
+! Lat-Lon selection file,  with all levels for INCA
+! used for AO40, gA -> BE40a_g1, gB -> NULL respectively
+&NAMFPC
+CFPDIR='PF', 
+LTRACEFP=.F.,
+NFPCAPE={nfpcape},
+RFPCSAB=100., RFPCD2=10.,
+CFPDOM(1)={cfpdom}
+CFPFMT='LALON', NFPCLI=3,
+CFPPHY(1)=
+      'SURFIND.TERREMER','SURFGEOPOTENTIEL',
+      'SURFTEMPERATURE','PROFTEMPERATURE',
+      'SURFRESERV.EAU', 'PROFRESERV.EAU',
+      'SURFRESERV.NEIGE',
+@CFPCFU(1)= 
+@      'SURFPREC.EAU.CON','SURFPREC.NEI.CON',
+@      'SURFPREC.EAU.GEC','SURFPREC.NEI.GEC',
+@      'SURFTIME.PREC.TO',
+@      'ATMONEBUL.BASSE','ATMONEBUL.MOYENN','ATMONEBUL.HAUTE' ,
+@      'ATMONEBUL.CONVEC','ATMONEBUL.TOTALE',
+@      'SURFRAYT THER DE','SURFRAYT SOLA DE',
+@      'SURFTENS.TURB.ZO','SURFTENS.TURB.ME',
+@      'SURFFLU.RAY.SOLA','SURFFLU.RAY.THER',
+!@      'ATMOHUMI TOTALE' ,'ATMOHUMI LIQUIDE','ATMOHUMI SOLIDE' ,
+!@      'SOMMFLU.RAY.SOLA','SOMMFLU.RAY.THER',
+!@      'SURFRAYT DIR SUR',
+!@      'SURFCHAL LATENTE','SURFFLU.CHA.SENS',
+CFPXFU(1)=
+      'CLSVENT.ZONAL','CLSVENT.MERIDIEN','CLSTEMPERATURE',
+      'CLSHUMI.RELATIVE', 
+      'SURFNEBUL.BASSE' ,'SURFNEBUL.MOYENN','SURFNEBUL.HAUTE' ,
+      'SURFNEBUL.CONVEC','SURFNEBUL.TOTALE',
+      'SURFCAPE.MOD.XFU','CLPMOCON.MOD.XFU','CLPMHAUT.MOD.XFU',
+      'CLSU.RAF.MOD.XFU','CLSV.RAF.MOD.XFU',                           
+      'SOMMRAYT.SOLAIRE','SOMMRAYT.TERREST',
+      'CLSMINI.HUMI.REL','CLSMAXI.HUMI.REL',
+      'CLSMINI.TEMPERAT','CLSMAXI.TEMPERAT',
+      'S000PLUIE CONVEC','S000PLUIE STRATI',
+      'S000NEIGE CONVEC','S000NEIGE STRATI',
+CFP2DF(1)=
+         'MSLPRESSURE', 'SURFPRESSION',
+         'SURFCAPE.POS.F00','SURFCIEN.POS.F00',
+CFP3DF(1)=
+         'GEOPOTENTIEL' ,'TEMPERATURE'  ,'THETA_PRIM_W',
+         'TEMPE_POTENT',
+         'VENT_ZONAL'   ,'VENT_MERIDIEN','VITESSE_VERT',
+         'HUMI.SPECIFI','HUMI_RELATIVE',
+         'POT_VORTICIT','ABS_VORTICITY','ISOT_ALTIT'
+NRFP3S(1)={slevels},
+! RFP3H(1)=200., 100.,
+RFP3H(1)=100.,200.,400.,600.,800.,1000.,1200.,1400.,1600.,1800.,2000.,
+          2200.,2400.,2600.,2800.,3000.,3200.,3400.,3600.,3800.,4000.,
+          4200.,4400.,4600.,4800.,5000.,5200.,5400.,5600.,5800.,6000.,
+          6200.,6400.,6600.,6800.,7000.,7200.,7400.,7600.,7800.,8000.,
+          8200.,8400.,8600.,8800.,9000.,9200.,9400.,9600.,9800.,10000.,
+RFP3P(1)=100000.,97500.,95000.,
+          92500.,90000.,
+          85000.,80000., 75000.,
+          70000.,60000.,
+          50000.,40000.,
+          30000., 20000., 10000.,
+RFP3PV(1)=0.000001,0.000002,0.000003,0.000004,
+RFP3I(1)=273.15,
+/
+! End of MAIN NAMELIST
+@@@@@
+! START of SELECTION NAMELIST
+! Auxiliary file for LALO subdomains
+!   g1: full resolution, g2: half, g4: quarter resolution
+!   g3: large domain half resolution
+&NAMFPPHY
+CLPHY='SURFIND.TERREMER','SURFGEOPOTENTIEL',
+      'SURFTEMPERATURE','PROFTEMPERATURE',
+      'SURFRESERV.EAU', 'PROFRESERV.EAU',
+      'SURFRESERV.NEIGE',
+CLDPHY='{gA}:{gB}','{gA}:{gB}',
+       '{gA}:{gB}','{gA}:{gB}',
+       '{gA}:{gB}','{gA}:{gB}',
+       '{gA}:{gB}',
+@CLCFU(1)=
+@      'SURFPREC.EAU.CON','SURFPREC.NEI.CON',
+@      'SURFPREC.EAU.GEC','SURFPREC.NEI.GEC',
+@      'SURFTIME.PREC.TO',
+@      'ATMONEBUL.BASSE','ATMONEBUL.MOYENN','ATMONEBUL.HAUTE' ,
+@      'ATMONEBUL.CONVEC','ATMONEBUL.TOTALE',
+@      'SURFRAYT THER DE','SURFRAYT SOLA DE',
+@      'SURFTENS.TURB.ZO','SURFTENS.TURB.ME',
+@      'SURFFLU.RAY.SOLA','SURFFLU.RAY.THER',
+!@      'ATMOHUMI TOTALE' ,'ATMOHUMI LIQUIDE','ATMOHUMI SOLIDE' ,
+!@      'SOMMFLU.RAY.SOLA','SOMMFLU.RAY.THER',
+!@     'SURFRAYT DIR SUR',
+!@      'SURFCHAL LATENTE','SURFFLU.CHA.SENS',
+@CLDCFU(1)='{gA}:{gB}','{gA}:{gB}',
+@          '{gA}:{gB}','{gA}:{gB}','{gA}:{gB}',
+@          '{gA}','{gA}','{gA}','{gA}','{gA}',
+@          '{gA}','{gA}',
+@          '{gA}','{gA}',
+@       '{gA}','{gA}',
+!@       '{gA}','{gA}','{gA}',
+!@       '{gA}','{gA}',
+!@       '{gA}','{gA}','{gA}',
+CLXFU(1)=
+      'CLSVENT.ZONAL','CLSVENT.MERIDIEN','CLSTEMPERATURE',
+      'CLSHUMI.RELATIVE', 
+      'SURFNEBUL.BASSE' ,'SURFNEBUL.MOYENN','SURFNEBUL.HAUTE' ,
+      'SURFNEBUL.CONVEC','SURFNEBUL.TOTALE',
+      'CLPMOCON.MOD.XFU','CLPMHAUT.MOD.XFU',
+      'CLSU.RAF.MOD.XFU','CLSV.RAF.MOD.XFU',                           
+      'SOMMRAYT.SOLAIRE','SOMMRAYT.TERREST',
+      'CLSMINI.HUMI.REL','CLSMAXI.HUMI.REL',
+      'CLSMINI.TEMPERAT','CLSMAXI.TEMPERAT',
+      'S000PLUIE CONVEC','S000PLUIE STRATI',
+      'S000NEIGE CONVEC','S000NEIGE STRATI',
+CLDXFU(1)=
+       '{gA}:{gB}', '{gA}:{gB}', '{gA}:{gB}',
+       '{gA}:{gB}', 
+       '{gA}:{gB}','{gA}:{gB}','{gA}:{gB}',
+       '{gA}:{gB}','{gA}:{gB}',
+       '{gA}','{gA}',
+       '{gA}','{gA}',
+       '{gA}','{gA}',
+       '{gA}:{gB}','{gA}:{gB}',
+       '{gA}:{gB}','{gA}:{gB}',
+       '{gA}:{gB}','{gA}:{gB}',
+       '{gA}:{gB}','{gA}:{gB}',
+/
+&NAMFPDY2
+CL2DF(1)='MSLPRESSURE', 'SURFPRESSION',
+         'SURFCAPE.POS.F00','SURFCIEN.POS.F00',
+CLD2DF(1)='{gA}:{gB}', '{gA}',
+          '{gA}:{gB}', 
+          '{gA}:{gB}', 
+/
+&NAMFPDYH
+! Fields at iso-height levels: full resolution (close to surface)
+CL3DF(1)='HUMI_RELATIV','VENT_ZONAL'   ,'VENT_MERIDIEN','TEMPERATURE',
+! IL3DF refers to RFP3H: level 200m or 100m
+! RFP3H(1)=100.,200.,400.,600.,800.,1000.,1200.,1400.,1600.,1800.,2000.,
+!         2200.,2400.,2600.,2800.,3000.,3200.,3400.,3600.,3800.,4000.,
+!         4200.,4400.,4600.,4800.,5000.,5200.,5400.,5600.,5800.,6000.,
+!         6200.,6400.,6600.,6800.,7000.,7200.,7400.,7600.,7800.,8000.,
+!         8200.,8400.,8600.,8800.,9000.,9200.,9400.,9600.,9800.,10000.,
+IL3DF(1,1)=2,
+IL3DF(1,2)=1,
+IL3DF(1,3)=1,
+IL3DF(1:50,4)=2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,
+! CL3DF(domain,parameter)
+CLD3DF(1,1)='{gA}:{gB}',
+CLD3DF(1:2,2)=2*'{gA}',
+CLD3DF(1:2,3)=2*'{gA}',
+CLD3DF(1:50,4)=50*'{gA}',
+/
+&NAMFPDYP
+! Fields at iso-p levels
+CL3DF(1)='GEOPOTENTIEL' ,'TEMPERATURE'  ,'THETA_PRIM_W',
+         'TEMPE_POTENT',
+         'VENT_ZONAL'   ,'VENT_MERIDIEN','VITESSE_VERT',
+         'HUMI.SPECIFI','HUMI_RELATIVE',
+         'POT_VORTICIT','ABS_VORTICITY',
+! IL3DF refers to RFP3P:
+! RFP3P(1)=100000.,97500.,95000.,
+!           92500.,90000.,
+!           85000.,80000., 75000.,
+!           70000.,60000.,
+!           50000.,40000.,
+!           30000.,
+!           20000.,
+!           10000.,
+IL3DF(1,1)=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, ! geop
+IL3DF(1,2)=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, ! T
+IL3DF(1,3)=4,6,9,11,13,
+IL3DF(1,4)=4,6,9,11,13,
+IL3DF(1,5)=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, ! u
+IL3DF(1,6)=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, ! v 
+IL3DF(1,7)=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, ! w
+IL3DF(1,8)=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, ! qv
+IL3DF(1,9)=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, ! RH
+IL3DF(1,10)=11,13,               ! PV: only 300 and 500hPa
+IL3DF(1,11)=9,11,13,             ! AV: only 300 and 500hPa and 700
+! List of domains for each parameter on each level
+! hence 
+CLD3DF(1:15,1)='{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}'
+CLD3DF(1:15,2)='{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}'
+CLD3DF(1:5,3)=5*'{gA}:{gB}',
+CLD3DF(1:5,4)=5*'{gA}:{gB}',
+CLD3DF(1:15,5)='{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}'
+CLD3DF(1:15,6)='{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}'
+CLD3DF(1:15,7)='{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}'
+CLD3DF(1:15,8)='{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}','{gA}:{gB}','{gA}','{gA}:{gB}','{gA}','{gA}:{gB}',2*'{gA}'
+CLD3DF(1:15,9)=15*'{gA}:{gB}',
+CLD3DF(1:2,10)=2*'{gA}:{gB}',
+CLD3DF(1:3,11)=3*'{gA}:{gB}',
+/
+&NAMFPDYS
+! Fields at model levels: only half resolution large domain
+CL3DF(1)='GEOPOTENTIEL' ,'TEMPERATURE'  , 
+         'TEMPE_POTENT',
+         'VENT_ZONAL'   ,'VENT_MERIDIEN','VITESSE_VERT',
+         'HUMI_RELATIVE','HUMI.SPECIFI',
+IL3DF(1,1)={slevels},
+IL3DF(1,2)={slevels},
+IL3DF(1,3)={slevels},
+IL3DF(1,4)={slevels},
+IL3DF(1,5)={slevels},
+IL3DF(1,6)={slevels},
+IL3DF(1,7)={slevels},
+IL3DF(1,8)={slevels},
+CLD3DF(1:{nfplev},1)={nfplev}*'{gA}',
+CLD3DF(1:{nfplev},2)={nfplev}*'{gA}',
+CLD3DF(1:{nfplev},3)={nfplev}*'{gA}',
+CLD3DF(1:{nfplev},4)={nfplev}*'{gA}',
+CLD3DF(1:{nfplev},5)={nfplev}*'{gA}',
+CLD3DF(1:{nfplev},6)={nfplev}*'{gA}',
+CLD3DF(1:{nfplev},7)={nfplev}*'{gA}',
+CLD3DF(1:{nfplev},8)={nfplev}*'{gA}',
+/
+&NAMFPDYT
+! Fields at iso-theta levels
+/
+&NAMFPDYV
+!Fields at iso-PV levels: half resolution
+CL3DF(1)='GEOPOTENTIEL','VENT_ZONAL'   ,'VENT_MERIDIEN',
+!RFP3PV(1)=0.000001,0.000002,0.000003,0.000004,
+IL3DF(1,1)=1,2,3,4,
+IL3DF(1,2)=1,2,3,4,
+IL3DF(1,3)=1,2,3,4,
+CLD3DF(1:4,1)=4*'{gA}',
+CLD3DF(1:4,2)=4*'{gA}',
+CLD3DF(1:4,3)=4*'{gA}',
+/
+&NAMFPDYI
+! Fields at iso-T levels
+CL3DF(1)='ISOT_ALTIT',
+IL3DF(1,1)=1,
+CLD3DF(1,1)='{gA}:{gB}',
+/
+&NAMFPDYF
+! Fields at flight-levels
+/

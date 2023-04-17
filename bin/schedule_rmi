@@ -1,0 +1,342 @@
+#!/bin/bash
+#==========================================================================
+## ecf submit/status/kill for RMI
+## Alex Deckmyn, 2015-09-16
+#==========================================================================
+
+##  schedule_irm  usser host file <task>
+##
+##  Decides according to host argument which submit method to use.
+##  On our HPC's (running PBS) this uses qsub to submit the job
+##  On other platforms, we use "nohup"
+##  $0 is the command name: ecf_submit, ecf_kill, ecf_status
+
+## TODO: 
+##  - what if ecFlow is running on HPC itself? do a "local qsub"?
+##  - send job-ID back, so that a queued job can be killed remotely
+#   - avoid hard coded "scratch-a" -> fixed in ecFlow suite
+## 2017-02-22 : remove plato & socrates + add bofur
+## 2018-05-23 : fix PBS path after HPC upgrade
+## 2018-11-23 : fix "kill" and "status"
+## 2019-05-29 : remove "thorin", add "nori"
+## 2019-11-19 : improve debugging
+## 2020-12-02 : add identification of operational reservation
+## 2021-02-15 : add "non-queued" hpc for transfer jobs
+## 2021-06-11 : send alarm if evictor queue is activated
+#set -x
+#echo $0 $* > $HOME/debug
+
+USAGE="Usage: $0 [options] <user> <host> <filename|ID> <output>"
+# -h : help
+# -r : use operational reservation if available
+# -d <outfile> : write debugging info to <outfile>
+# -r <PBSOPTION> : add a PBS option to the submit command
+pbsoptions=""
+oper_queue="no"
+login_node="no"
+
+jobout="/dev/null" # the output of the submission script
+#jobout=$HOME/debug
+
+# we could add -q XXX explicitely for defining the queue
+# but we prefer to pass all PBS options via -o
+# THE LAST OPTION MUST BE THE TASK
+
+action=${@:$#} # the last entry of command line is the action 
+               # must be submit|status|kill
+# action=${@: -1}  # also works
+
+while getopts hrd:o: opt
+do
+    case $opt in
+      h) echo -e $USAGE; exit ;;
+      d) jobout="$OPTARG"
+         ;;
+      l) login_node=yes
+         echo "LOGIN NODE!" >> $jobout
+         ;;
+      r) oper_queue=yes
+         echo "OPERATIONAL QUEUE!" >> $jobout
+         ;;
+      o) pbsoptions="$pbsoptions $OPTARG"
+         ;;
+      ?) echo "invalid option $OPTARG" >> $jobout
+         ;;
+    esac
+done
+# skip to arguments that come after the options
+shift $(($OPTIND - 1))
+
+user=$1 # which user (on the remote machine)
+host=$2 # on which machine
+case $action in
+  *submit)       action=submit ; filename=$3 ;;
+  *kill)         action=kill   ; rid=`echo $3 | cut -d "." -f 1 ` ;;
+  *stat|*status) action=stat   ; rid=`echo $3 | cut -d "." -f 1 ` ;;
+  *) action="error" ; exit 1 ;;
+esac
+
+# Error handling and cleanup
+# FIXME: is there a way to see the error message in ecflow_ui ?
+function ERROR { 
+  err=$?
+  echo "ERROR $0: $* $? - Exiting." >> $jobout
+  echo "ERROR $0: $* $? - Exiting." >&2 $*
+#  [[ -f $ecfjobsub ]] && grep "has been submitted" $ecfjobsub && exit 0
+# Unable to run job: failed receiving gdi request # TBD OK
+  exit 1
+}
+
+function get_reservation {
+  # this functions identifies the current operational reservation
+  # Obviously, this is only valid for RMI's current HPC
+  # NOTE : the reservation must be for the given user name
+  #   otherwise you always get "", so you use the default queue.
+  local hpc_user=$1
+  local hpc_host=$2
+  # We send a rather long ssh command (note that most quotes and $'s are escaped) 
+  # The file /space/pbspro/ald_op/queuename
+  # contains the name of the next reservation OR the mergency queue
+
+  reservation=$(ssh -l $hpc_user $hpc_host "
+    FN=/space/pbspro/$hpc_user/queuename
+    if [[ -f \$FN ]] ; then
+      # this file /should/ contain the name of the emergency queue (if working): ald_op_ev
+      # or the next operational reservation, e.g. Rxxxxxxxxx.hpb-pbs
+      queuename=\$(cat \$FN | sed \"s/.hpc-pbs//\" )
+#      echo queuename=\$queuename
+    else
+      # if the file does not exist, use the list of reservations
+      queuename=\$(pbs_rstat -f \
+            |awk -v hpc_user=$hpc_user '/^Reserve_Name/{rsv_name=\$3 ;} \
+                  /queue/{q=\$3 ; \
+                    if ( rsv_name == hpc_user ) print q ; }' | head -1 | sed 's/.hpc-pbs//')
+#      echo resv=\$queuename
+    fi
+
+    # is the queue or reservation already active?
+    q_active=\$(qstat -Q \$queuename | grep \$queuename | awk '{print \$5}')
+    # if the answer is yes, all is well. Otherwise, we check when it will start
+    if [[ \$q_active == no ]] ; then
+      # check the starting time of this reservation
+      # only OK if it is within N seconds, e.g. N=1800 (30)
+      start_time=\$(pbs_rstat -f \$queuename | grep reserve_start | cut -d' ' -f3-)
+      start_time_s=\$(date -d\"\$start_time\" +%s)
+      now_s=\$(date +%s)
+      # so the time before starting is:
+      wait_s=\$(( start_time_s - now_s ))
+#      echo WAIT=\$wait_s
+#      echo \$now_s
+      if (( \$wait_s > 1800 )) ; then
+        queuename=
+      fi
+    fi
+    echo \$queuename
+")
+  echo $reservation
+}
+
+if [[ $action = "submit" ]] ; then
+#  echo OPTIONS $pbsoptions > $HOME/ttt.ecf
+  ecfjobsub=${filename}.sub
+#--------------------------------------------------------------------------
+#  File must exist!
+#--------------------------------------------------------------------------
+  if [[ ! -f $filename ]] ; then
+    echo "$0: File $filename not found?" >> $jobout
+    echo "$0: File $filename not found?"
+    exit 1
+  fi
+  outfile=$4 # where to write the remote output
+  node_suffix=$5
+  ecfid=$5
+fi
+
+#------------
+#  Debugging
+#------------
+# 
+echo SCHEDULE $action > $jobout
+echo `date` >> $jobout
+echo $action via $type on $user@$host >> $jobout
+if [[ $action = "submit" ]] ; then
+  echo ecfjobsub   = $ecfjobsub   >> $jobout
+  echo outfile     = $outfile     >> $jobout
+  echo node_suffix = $node_suffix >> $jobout
+  echo ecfid       = $ecfid       >> $jobout
+  echo PBS options = $pbsoptions  >> $jobout
+fi
+
+#--------------------------------------------------------------------------
+# determine queuing system from hostname
+# (can be replaced by a more refined method later...)
+#--------------------------------------------------------------------------
+
+
+case $host in
+  hpc[ab] )
+    type=pbs
+    host=${host}-login
+## $outfile may have to be adapted as well! 
+## Avoid writing to /tmp on HPC -> replace by /scratch-a/$user
+## NORMALLY, ecflow should have taken care of this, but by default
+## ecflow uses /tmp for local scripts, so a beginner may make a mistake...
+    outfile=`echo $outfile | sed -e "s/^\/tmp\//\/scratch-a\/$user\//"`
+    PBS=/space/pbspro/pbs_exec_new/bin
+    ;;
+    # for now, we take hpca-login to still mean a compute job
+    # so we can't run on the login node directly...
+  hpc[ab]-login )
+    type=pbs # ssh
+    outfile=`echo $outfile | sed -e "s/^\/tmp\//\/scratch-a\/$user\//"`
+    PBS=/space/pbspro/pbs_exec_new/bin
+    ;;
+  ## "-nq" means: don't submit to queue...
+  hpc[ab]-login-nq)
+    type=ssh
+    host=${host%%-nq}
+    outfile=`echo $outfile | sed -e "s/^\/tmp\//\/scratch-a\/$user\//"`
+    RUNSHELL=/bin/bash
+    ;;
+  hpc[ab]-nq )
+    type=ssh
+    host=${host%%-nq}-login
+    outfile=`echo $outfile | sed -e "s/^\/tmp\//\/scratch-a\/$user\//"`
+    RUNSHELL=/bin/bash
+    ;;
+  $hostname | localhost | local )
+    type=local
+    RUNSHELL=/bin/bash
+    ;;
+  nori | kili | moria )
+    type=ssh
+#    output=xxx ### for testing, obviously. You could consider using this to retrieve log files. 
+    RUNSHELL=/bin/bash
+    ;;
+  * )
+    type=rsh
+    output="/dev/null"
+    RUNSHELL=/bin/bash
+    ;;
+esac
+
+#[[ $output=="" ]] || outputdir=`dirname $output`
+[[ $outfile=="" ]] || outdir=`dirname $outfile`
+
+case $type in
+#==========================================================================
+# Submit/Kill using PBS
+#==========================================================================
+  pbs )
+    QDEL=$PBS/qdel
+    QSTAT=$PBS/qstat
+    case $action in
+      submit)
+        # IF you are going to use the operational reservation, identify it:
+        # NOTE: this will override whatever queue is given in the file header
+        if [[ $oper_queue == "yes" ]] ; then
+          queue=$(get_reservation $user $host)
+          if [[ $queue ]] ; then
+            echo "Operational reservation: $queue" >> $jobout
+            pbsoptions="-q $queue $pbsoptions"
+            if [[ $queue == "ald_op_ev" ]] ; then
+              echo "EVICTOR used" | mailx -s "EVICTOR" dalex.oma.be,oliver@oma.be
+            fi
+          else
+            echo "No operational queue available. Using default." >> $jobout
+          fi
+        fi
+        pbsoptions="$pbsoptions -j oe -o $outfile"
+        QSUB="$PBS/qsub $pbsoptions"
+        outsub=${filename}_sub
+### two alternatives: copy the script file to $host and submit it from there
+### or simply source the file directly
+### We currently go for option 2: the actual job script *is not copied* to HPC 
+###    we submit the job as "ssh qsub < $filename ..." where $filename is located 
+###    on the server running the ecflow suite
+###    
+###   - remote create directory for job logs
+###   - do you want to write submission output locally ?
+        ssh $user@$host mkdir -p `dirname $outfile` >> $jobout
+        echo MKDIR OK >> $jobout
+        echo ssh $user@$host $QSUB < $filename  >> $jobout
+#        echo ssh $user@$host mkdir -p `dirname $outfile` >> $jobout
+        subout=`ssh $user@$host $QSUB < $filename 2>&1` || {
+          echo $subout >> $jobout
+          ERROR "job submission failed: $subout"
+        }
+        jobid=`echo $subout | cut -d. -f1`
+        echo "JOB ID: $jobid" >> $jobout
+        ## TODO: Can I communicate the job id to ecflow?
+        ##       that would be nice: then we can e.g. kill jobs BEFORE they are running.
+        # ecflow_client needs "header" info etc... which is hidden in job
+        # try "grep ECFPORT" etc ... -> NOT SIMPLE
+        ;;
+      status)
+        ssh $user@$host $QSTAT $rid
+        ;;
+      kill)
+#        echo ssh $user@$host $QDEL $rid > $HOME/check_kill
+        ssh $user@$host $QDEL  $rid
+        ;;
+    esac
+  ;;
+#==========================================================================
+# Submit using ssh
+#==========================================================================
+  ssh )
+    case $action in
+      submit)  
+### two alternatives: copy the script file to $host and submit it from there
+### or simply source the file directly
+#   NOTE: the second option may give problems if the script contains "ssh" commands
+#         those may need an "-n" option to run correctly!!!
+	cmd="ssh -l $user $host"
+#   [[ $output=="" ]] || outputdir=`dirname $output`
+#	if [[ "$outputdir" != "" ]] ; then
+#		$cmd mkdir -m 775 -p $outputdir 2>&1 || /bin/true
+#	fi
+
+#	if [[ -d $outputdir ]] ; then
+#		chmod 775 $outputdir || /bin/true
+#	fi
+	
+	#
+	#  Submit the job
+	#
+        ssh -l $user $host mkdir -p `dirname $outfile` >> $jobout
+        echo $cmd \"nohup $outfile $RUNSHELL \"  \< ${filename} >> $jobout
+	$cmd "nohup $RUNSHELL > $outfile 2>&1 -s " < ${filename} &
+        # || ERROR "Job submission to ssh nohup failed."
+      ;;
+      kill)
+        $cmd kill $rid
+      ;;
+      status)
+        $cmd ps $rid
+      ;;
+    esac
+  ;;
+#==========================================================================
+# Submit to local or any other workstation using nohup
+#==========================================================================
+  local )
+#    if [[ "$outdir" != "" ]] ; then
+#      $cmd mkdir -m 775 -p $outdir 2>&1 || /bin/true
+#    fi
+    case $action in
+      submit)
+        echo "$RUNSHELL $filename > $outfile 2>&1 " >> $jobout
+        nohup $RUNSHELL $filename > $outfile 2>&1  || ERROR "Job submission to standalone failed." >> $jobout
+      ;;
+      kill) 
+        kill $rid
+      ;;
+      status)
+        ps $rid
+      ;;
+    esac
+  ;;
+esac
+
+exit 0

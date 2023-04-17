@@ -1,0 +1,22 @@
+@include <head.h>
+@manual
+This task is triggered if the cycle runs too late.
+It merely raises an alert, it doesn't investigate, fix or re-queue anything.
+
+If this tasks fails: find out why the cycle is delayed. Maybe there is a job that has failed but is not reported correctly. Sometimes, a job on HPC can be killed (walltime) and not show in the ecflow interface. It will still look "running" or "queued". 
+
+If the source of delay has been fixed, or you are sure that everything is running OK, you can set this job to complete. Or re-queue it with a different alert time by re-running ../initialisation/set_alert.
+
+ATTENTION: you should set this job to "complete"! It only serves to raise awareness of a delay. After that, it should be set complete. If left in aborted state, this task will stop the cycle from moving to the next day.
+
+@end
+
+# Send an e-mail explicitly?
+# Try to see which routine is causing the delay?
+# Any other action?
+
+# launch a very simple ecflow error
+exit 1
+
+@include <tail.h>
+

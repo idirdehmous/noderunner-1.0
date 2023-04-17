@@ -1,0 +1,319 @@
+#!/bin/bash
+@manual
+This is an alternative version of the forecast script, running ONLY the DFI step.
+
+If there is an assimilation cycle, it assumes a file "analysis" is available.
+If the model uses Surfex, there must also be a file "analysis_sfx".
+
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+module load ecflow/@ECF_VERSION@
+
+set -x
+
+# after a re-run, the progress counter is not reset (only reset with re-queue)
+# so for safety:
+
+ecflow_client --meter forecast_counter -1
+
+CFNHWF=ECHALAD
+
+# Prepare directory
+WDIR=${d_FC}
+mkdir -p $WDIR
+cd $WDIR
+
+# clean up
+# NOTE: recursive rm is needed for io_server temp directories
+rm -rf * 2>/dev/null
+
+# LBC's
+#
+# FIXME: should 0h coupling file be ==INIT or ==LBC000 ?
+# NOTE: some of these files may not yet "exist", but creating the link is OK
+#       we know that at least the first few LBC's are already available.
+maxlbc=$(( HOURRANGE / LBC_INC ))
+if (( $HOURRANGE % $LBC_INC != 0 )) ; then
+  maxlbc=$(( maxlbc + 1 ))
+fi
+
+for nnn in $(seq -f%03g 0 $maxlbc ) ; do
+  ln -sf ${d_LBC}/ELSCF${CNMEXP}ALBC$nnn .
+done
+
+# FIXME: in case of NFS lag, these files may not yet "exist" on the current node.
+#        the forecast was triggered, but sometimes it takes some seconds for /other/ nodes
+#        to be able to link to the file.
+#        MAYBE "cp" is safer
+#        Or should we run "sync" from the assimilation node before finishing?
+
+# INITIAL CONDITIONS
+# TODO: add an option to (re-)run from archived analysis? 
+if [[ $ASSIMILATION == "no" || $COLDSTART = $RUNDATE ]] ; then
+  # downscaling mode OR assimilation coldstart
+  # NOTE: if we use links, we should NEVER use cp (which would modify the original as well)
+  #       but mv is OK.
+  ln -sf ${d_LBC}/ELSCF${CNMEXP}ALBC000 ICMSH${CNMEXP}INIT
+  if [[ $SURFACE == "surfex" ]] ; then
+    ln -sf ${d_LBC}/ICMSH${CNMEXP}INIT.sfx .
+  fi
+else
+  # use analysis
+  ln -sf ${d_GUESS}/analysis ICMSH${CNMEXP}INIT
+  [[ $SURFACE == "surfex" ]] && ln -sf ${d_GUESS}/analysis_sfx ICMSH${CNMEXP}INIT.sfx
+  # in case of serious operational problems (like canari crashing on bad obs)
+  if [[ ! -e ${d_GUESS}/analysis || ( $SURFACE = surfex && ! -e ${d_GUESS}/analysis_sfx ) ]] ; then
+    if [[ $RUN_MODE == oper && $ECF_TRYNO -ge 3 ]] ; then
+      # if we have already tried to re-run in an operational setting
+      # just use the first guess (better than no forecast...)? 
+      ln -sf ${d_GUESS}/first_guess_orig ICMSH${CNMEXP}INIT
+      [[ $SURFACE == "surfex" ]] && ln -sf ${d_GUESS}/first_guess_sfx ICMSH${CNMEXP}INIT.sfx
+      # TODO: make sure there is a warning about this
+    else
+      # Check for archived analysis (re-run?)
+      echo "Retrieving archived analysis :"
+      echo "    ${ARCH_HOST}:${ARCH_PATH}/CYCLE/${CNMEXP}/$YYYY/$MM/$DD/$RR/analysis"
+      scp ${ARCH_HOST}:${ARCH_PATH}/CYCLE/${CNMEXP}/$YYYY/$MM/$DD/$RR/analysis . || {
+        echo "Missing analysis!"
+        exit 1
+      }
+    fi
+  fi
+  # space-consistent coupling (use analysis as init AND 00h boundary)
+  # FIXME: commented out for consistency with current oper suite
+#  ln -sf ICMSH${CNMEXP}INIT ELSCF${CNMEXP}ALBC000
+fi
+
+# bring runtime files
+if [[ $SURFACE == "surfex" ]] ; then
+  ln -sf ${DATADIR_ECOCLIMAP}/* .
+  ln -sf ${DATADIR_RUNTIME}/* .
+else
+  # ISBA doesn't need a lot. Even this is maybe too much...
+  ln -sf ${DATADIR_RUNTIME}/RADRRTM .
+  ln -sf ${DATADIR_RUNTIME}/RADSRTM .
+  ln -sf ${DATADIR_RUNTIME}/MCICA .
+fi
+
+# Bring executable
+ln -sf ${d_BIN}/MASTERODB .
+
+if [[ $SURFACE == "surfex" ]] ; then
+  # FIXME: should not be hard-coded
+  ln -sf ${d_CLIM}/${PGD_FILE} Const.Clim.sfx
+fi
+# for inline FullPos we need CLIM files
+#MODELCLIM=${d_CLIM}/${DOMAIN}_
+#ln -sf ${MODELCLIM}$MM Const.Clim
+#ln -sf ${MODELCLIM}$MM const.clim.${DOMAIN}
+#  ln -sf ${d_CLIM}/${PGD_FILE} const.clim.sfx.${DOMAIN}
+
+NAMELIST="$( for nn in $NAMELIST_FORECAST ; do echo ${d_NAMELIST}/$nn ; done )"
+
+CPLFREQ=$(( 10#$LBC_INC * 3600 ))
+NPROCIO=64
+
+# MAYBE switch to inline DFI? It is allowed...
+# In that case, we can not play with CPLFREQ just for the DFI
+# So we really need to modify NSTDFI in case of 1h coupling.
+if [[ $DFI == "yes" ]] ; then
+  # FOR DFI: always 3h coupling?
+  # DFI window must be within first LBC file (1h or 3h)
+  # with TAUS=10800 (3h), you get an optimal time window of ~2.08h 
+  #       (doesn't change much with TSTEP)
+  # So if CPLFREQ=1, you need to reduce the NSTDFI a little bit
+  #       to keep the window <= 2h
+  #       NSTDFI such that NSTDFI * TIMESTEP < CPLFREQ
+  # OR set a lower TAUS=10400 (same effect?)
+  # OR use 3h coupling for DFI step (different effect)
+
+  DFIEXP=DFI0
+  # DFI at e.g. 4km: should have 3h coupling
+  if (( $TIMESTEP > 60 && $LBC_INC == 1 )) ; then
+    DFI_CPL=3
+  else
+    DFI_CPL=$LBC_INC
+  fi
+
+  # we make a copy here, not a link
+  # because after DFI ICMSH${CNMEXP}INIT will be modified and we want to keep track of all steps
+  cp ICMSH${CNMEXP}INIT ICMSH${DFIEXP}INIT
+  [[ $SURFACE == surfex ]] && ln -sf ICMSH${CNMEXP}INIT.sfx ICMSH${DFIEXP}INIT.sfx
+  ln -sf ELSCF${CNMEXP}ALBC000 ELSCF${DFIEXP}ALBC000
+  # FIXME: we may be discarding NSTDFI settings...
+  # ONLY change {nstdfi} if it exists?
+  # HOW can this be implemented? 
+  if [[ ${DFI_CPL} == 1  ]] ; then
+    # leave 1h coupling but make sure NSTDFI < 1h ???
+    ln -sf ELSCF${CNMEXP}ALBC001 ELSCF${DFIEXP}ALBC001
+    NSTDFI=$(( 3600 / TIMESTEP - 1 ))
+    CPLF=3600
+  elif [[ $LBC_INC == 1 ]] ; then
+    # we want 3h window for DFI, so NSTDFI probably needs no modification
+    ln -sf ELSCF${CNMEXP}ALBC003 ELSCF${DFIEXP}ALBC001
+    CPLF=10800.
+    # "normally" you get an optimal windown at 2.08h
+    NSTDFI=$(( 3750 / TIMESTEP + 1 ))
+  else
+    # 3h coupling (we presume)
+    ln -sf ELSCF${CNMEXP}ALBC001 ELSCF${DFIEXP}ALBC001
+    CPLF=$CPLFREQ
+    NSTDFI=$(( 3750 / TIMESTEP + 1 ))
+  fi
+
+  # NOTE: no longer necessary to set LSPRT=.FALSE. in DFI (???)
+#       so we can actually drop this {} key
+# BUT: it has a *significant* effect on the output!
+# If you want LSPRT=.T. in DFI, just don't use {lsprt} in namelist
+# we /could/ even run DFI "inline"
+# NOTE: we may need to change coupling frequency in DFI!
+
+# To get certain fields like ATMOHUMI in historic files,
+#  we need to have them in a FullPos, so we may have 1 FP at +00h
+cat ${NAMELIST} |grep -v '^!'|sed -e "s/!.*//"   \
+  -e "s/NPROC=.*/NPROC=$NPROC/" \
+  -e "s/NPROC_IO=.*/NPROC_IO=0/" \
+  -e "s/NPRGPNS=.*/NPRGPNS=$NPRGPNS/" \
+  -e "s/NPRGPEW=.*/NPRGPEW=$NPRGPEW/" \
+  -e "s/NPRTRV=.*/NPRTRV=$NPRTRV/" \
+  -e "s/NPRTRW=.*/NPRTRW=$NPRTRW/" \
+  -e "s/NSTRIN=.*/NSTRIN=$NPROCIO/" \
+  -e "s/NSTROUT=.*/NSTROUT=$NPROCIO/" \
+  -e "s/UTSTEP=.*/UTSTEP=${TIMESTEP}/g"  \
+  -e "s/CUSTOP=.*/CUSTOP=\'t1\'/"               \
+  -e "s/CNMEXP=.*/CNMEXP=\'${DFIEXP}\'/"   \
+  -e "s/CFPDOM(1)=.*/CFPDOM(1)=\'${DOMAIN}\'/"   \
+  -e "s/NFRHIS=.*/NFRHIS=1/"      \
+  -e "s/NHISTS(0)=.*/NHISTS=-1,-0/"      \
+  -e "s/NFRSFXHIS=.*/NFRSFXHIS=1/"      \
+  -e "s/NSFXHISTS(0)=.*/NSFXHISTS=-1,-0/"      \
+  -e "s/N1HIS=.*/N1HIS=1/"      \
+  -e "s/N1SFXHIS=.*/N1SFXHIS=1/"      \
+  -e "s/N1POS=.*/N1POS=0/"      \
+  -e "s/NFPOS=.*/NFPOS=0/"               \
+  -e "s/{lsprt}/.F./"         \
+  -e "s/LDFI=.*/LDFI=.T./"           \
+  -e "s/CFNHWF=.*/CFNHWF=\'ECHALAD_DFI\'/"     \
+  -e "s/{nstdfi}/${NSTDFI}/"   \
+  -e "s/TEFRCL=.*/TEFRCL=$CPLF/"     \
+  -e "s/{nfr_hourly}/$(( 3600 / TIMESTEP ))/"  \
+  -e "s/{nfr_3hourly}/$(( 10800 / TIMESTEP ))/"  \
+> fort.4
+#  -e "s/NREQIN=.*/NREQIN=0/g"  \
+#  -e "s/NSTDFI=.*/${NAMDFI}/"   \
+  rm -f ICMSH${DFIEXP}INIT ELSCF${DFIEXP}ALBC000 ICMSH${DFIEXP}ALBC001 ICMSH${DFIEXP}ALBC002
+  cp ELSCF${CNMEXP}ALBC000  ICMSH${DFIEXP}INIT
+  cp ELSCF${CNMEXP}ALBC000  ELSCF${DFIEXP}ALBC000
+  cp ELSCF${CNMEXP}ALBC001  ICMSH${DFIEXP}ALBC001
+  cp ELSCF${CNMEXP}ALBC002  ICMSH${DFIEXP}ALBC002
+#  cp ../fort.4_dfi fort.4
+
+  if [[ $SURFACE == "surfex" ]] ; then
+    cp ${d_NAMELIST}/${NAMELIST_FORECAST_SFX} EXSEG1.nam
+  fi
+#  /usr/bin/time mpiexec_mpt omplace 
+  $MPIRUN ./MASTERODB > out.dfi 2>err.dfi || {
+    echo "An ERROR occured!"
+  }
+  mv NODE.001_01 NODE.001_01_dfi
+  mv fort.4 fort.4_dfi
+
+  # merge the fafile if an io server is used
+  if [[ $IO_SERVER == yes ]]; then
+    ${d_BIN}/lfitools facat all \
+      io_serv.0000*/ICMSH${DFIEXP}+0000.gridall \
+      io_serv.0000*/ICMSH${DFIEXP}+0000.speca.???? \
+      ICMSH${DFIEXP}+0000     
+  fi 
+
+# check if complete
+  if [[ ! -f ICMSH${DFIEXP}+0000 ]]; then
+    echo "DFI on ${DOMAIN} failed."
+    echo ======================================
+    echo NODE.001_01
+    cat NODE.001_01_dfi
+    echo ======================================
+    echo err.log
+    cat err.dfi
+    exit 1
+  fi
+
+#  ecflow_client --event main_forecast_dfi
+
+  ls -al
+# the output of DFI now becomes INIT file:
+# NOTE: don't use cp here! ICMSH${CNMEXP}INIT may be a symbolic link.
+#       mv is OK: this basically will first delete the link and then rename.
+  mv -f ICMSH${DFIEXP}+0000 ICMSH${CNMEXP}INIT
+
+fi #dfi
+
+### FORECAST
+# assume hourly historic files? set NFRHIS=3600/TSTEP ?
+# OR assume tha NFRHIS etc are already correctly set.
+# NFRHIS=1, NHISTS=-N,-0,-1,..,-N is independent of time step...
+# CYCLE_INC==0 signifies you are running separate cases...
+# SURFEX HISTORICAL FILES?
+if [[ $SURFACE == "surfex" && $ASSIMILATION = yes && $CYCLE_INC -gt 0 ]] ; then
+  nsfx=$(( @FG_MAX:$CYCLE_INC@ / $CYCLE_INC ))
+  nsfxhists=-${nsfx},-$(seq -s",-" $CYCLE_INC $CYCLE_INC @FG_MAX:$CYCLE_INC@)
+else
+  nsfxhists=-1,-0
+fi
+
+cat ${NAMELIST} | grep -v '^!' | sed -e "s/!.*//" \
+  -e "s/NPRGPNS=.*/NPRGPNS=$NPRGPNS/" \
+  -e "s/NPROC=.*/NPROC=$NPROC/" \
+  -e "s/NPROC_IO=.NPROC_IO=$NPROC_IO/" \
+  -e "s/NPRGPEW=.*/NPRGPEW=$NPRGPEW/" \
+  -e "s/NPRTRV=.*/NPRTRV=$NPRTRV/" \
+  -e "s/NPRTRW=.*/NPRTRW=$NPRTRW/" \
+  -e "s/NSTRIN=.*/NSTRIN=$NPROCIO/" \
+  -e "s/NSTROUT=.*/NSTROUT=$NPROCIO/" \
+  -e "s/UTSTEP=.*/UTSTEP=${TIMESTEP}/"  \
+  -e "s/CUSTOP=.*/CUSTOP=\'${HOURRANGE}h\'/"  \
+  -e "s/CNMEXP=.*/CNMEXP=\'${CNMEXP}\'/"   \
+  -e "s/CFPDOM(1)=.*/CFPDOM(1)=\'${DOMAIN}\'/"   \
+  -e "s/CUSTOP=.*/CUSTOP=\'h${HOURRANGE}\'/"  \
+  -e "s/{nfr_hourly}/$(( 3600 / TIMESTEP ))/"  \
+  -e "s/{nfr_3hourly}/$(( 10800 / TIMESTEP ))/"  \
+  -e "s/{lsprt}/.T./"    \
+  -e "s/NSFXHISTS(0)=.*/NSFXHISTS(0)=$nsfxhists/"  \
+  -e "s/CFNHWF=.*/CFNHWF=\'${CFNHWF}\'/"     \
+  -e "s/TEFRCL=.*/TEFRCL=$CPLFREQ/"      \
+  -e "s/{namdfi}//" \
+> fort.4
+
+if [[ $SURFACE == "surfex" ]] ; then
+  cp ${d_NAMELIST}/${NAMELIST_FORECAST_SFX} EXSEG1.nam
+fi
+#/usr/bin/time mpiexec_mpt omplace
+# NOTE: we add "|| true" to avoid triggering an ecflow abort
+#       so we can print the log files before aborting
+$MPIRUN ./MASTERODB > out.log 2>err.log || {
+  echo "ERROR"
+}
+# to make debugging easier via ecflow (&logserver)
+# we copy the error messages into the output
+if [[ ! -e $CFNHWF || 10#`cat $CFNHWF` -lt 10#$HOURRANGE ]] ; then
+  echo ======================================
+  ls -al
+  echo ======================================
+  echo err.log
+  cat err.log
+  echo ======================================
+  echo NODE.001_01
+  cat NODE.001_01
+  exit 1
+fi
+
+# on some platforms, we must tell the monitor script to stop
+# but give it some time to report first
+sleep 15
+touch stop_monitor
+
+echo === FINISHED ===
+@include <tail.h>

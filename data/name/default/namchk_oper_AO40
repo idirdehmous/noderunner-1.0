@@ -1,0 +1,74 @@
+&NAMCHK
+  LECHKEVO={lechkevo},
+  LECHKTND=.FALSE.,
+  LECHKPS=.TRUE.,
+  NGPCHK= 35,
+ NXCHK(  1)= 202, NYCHK(  1)= 218, ! (    3.182,   51.321)
+ NXCHK(  2)= 223, NYCHK(  2)= 209, ! (    4.386,   50.996)
+ NXCHK(  3)= 241, NYCHK(  3)= 208, ! (    5.413,   50.950)
+ NXCHK(  4)= 239, NYCHK(  4)= 215, ! (    5.308,   51.203)
+ NXCHK(  5)= 223, NYCHK(  5)= 211, ! (    4.387,   51.068)
+ NXCHK(  6)= 197, NYCHK(  6)= 213, ! (    2.897,   51.139)
+ NXCHK(  7)= 199, NYCHK(  7)= 215, ! (    3.011,   51.212)
+ NXCHK(  8)= 230, NYCHK(  8)= 199, ! (    4.778,   50.633)
+ NXCHK(  9)= 218, NYCHK(  9)= 192, ! (    4.095,   50.386)
+ NXCHK( 10)= 197, NYCHK( 10)= 225, ! (    2.890,   51.571)
+ NXCHK( 11)= 199, NYCHK( 11)= 225, ! (    3.006,   51.572)
+ NXCHK( 12)= 197, NYCHK( 12)= 223, ! (    2.891,   51.499)
+ NXCHK( 13)= 199, NYCHK( 13)= 223, ! (    3.007,   51.500)
+ NXCHK( 14)= 201, NYCHK( 14)= 220, ! (    3.124,   51.392)
+ NXCHK( 15)= 216, NYCHK( 15)= 194, ! (    3.982,   50.458)
+ NXCHK( 16)= 218, NYCHK( 16)= 194, ! (    4.095,   50.458)
+ NXCHK( 17)= 216, NYCHK( 17)= 192, ! (    3.982,   50.386) quevy
+ NXCHK( 18)= 202, NYCHK( 18)= 216, ! (    3.183,   51.249)
+ NXCHK( 19)= 230, NYCHK( 19)= 192, ! (    4.772,   50.382)
+ NXCHK( 20)= 235, NYCHK( 20)= 180, ! (    5.041,   49.947)
+ NXCHK( 21)= 195, NYCHK( 21)= 227, ! (    2.773,   51.642)
+ NXCHK( 22)= 215, NYCHK( 22)= 199, ! (    3.927,   50.638)
+ NXCHK( 23)= 221, NYCHK( 23)= 216, ! (    4.275,   51.248)
+ NXCHK( 24)= 195, NYCHK( 24)= 213, ! (    2.783,   51.138)
+ NXCHK( 25)= 208, NYCHK( 25)= 215, ! (    3.528,   51.214)
+ NXCHK( 26)= 237, NYCHK( 26)= 210, ! (    5.187,   51.025) Beringen
+ NXCHK( 27)= 228, NYCHK( 27)= 220, ! (    4.680,   51.390) brechtwuustwezel
+ NXCHK( 28)= 225, NYCHK( 28)= 183, ! (    4.484,   50.060) Couvin
+ NXCHK( 29)= 221, NYCHK( 29)= 215, ! (    4.274,   51.212) Beveren
+ NXCHK( 30)= 242, NYCHK( 30)= 208, ! (    5.470,   50.949) genkzuit
+ NXCHK( 31)= 201, NYCHK( 31)= 202, ! (    3.132,   50.745) grensland
+ NXCHK( 32)= 239, NYCHK( 32)= 208, ! (    5.299,   50.951) hellebeemden
+ NXCHK( 33)= 225, NYCHK( 33)= 196, ! (    4.492,   50.528) marbais
+ NXCHK( 34)= 225, NYCHK( 34)= 222, ! (    4.508,   51.463) megawindy
+ NXCHK( 35)= 209, NYCHK( 35)= 197, ! (    3.587,   50.566) pelz-leuze
+! List of fields: depends on number of levels
+  NNFCHK( 1)= 252,
+  NNFCHK( 2)= 253,
+  NNFCHK( 3)= 254,
+  NNFCHK( 4)= 255,
+  NNFCHK( 5)= 256, 
+  NNFCHK( 6)= 257, 
+  NNFCHK( 7)= 258,
+  NNFCHK( 8)= 259,
+  NNFCHK( 9)= 260,
+  NNFCHK(10)= 261, ! 3*NFLEV U ^^
+  NNFCHK(11)= 339, 
+  NNFCHK(12)= 340,
+  NNFCHK(13)= 341,
+  NNFCHK(14)= 342,
+  NNFCHK(15)= 343, 
+  NNFCHK(16)= 344, 
+  NNFCHK(17)= 345,
+  NNFCHK(18)= 346,
+  NNFCHK(19)= 347,
+  NNFCHK(20)= 348, ! 4*NFLEV V ^^
+  NNFCHK(21)= 426,
+  NNFCHK(22)= 427,
+  NNFCHK(23)= 428,
+  NNFCHK(24)= 429,
+  NNFCHK(25)= 430,
+  NNFCHK(26)= 431,
+  NNFCHK(27)= 432,
+  NNFCHK(28)= 433,
+  NNFCHK(29)= 434,
+  NNFCHK(30)= 435, ! 5*NFLEV T ^^
+  NNFCHK(31)= 436, ! 5*NFLEV + 1  pressure
+  NFLDCHK= 31,
+/

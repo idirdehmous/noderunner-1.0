@@ -1,0 +1,67 @@
+&NAMDYNCORE
+/
+&NAMSCEN
+/
+&NADIRS
+!SIGMAO_COEF(1:15)=.67,.67,.67,.67,.67,.67,.67,.67,.67,.67,.67,.67,.67,.67,.67,
+!NLON_GRIB=1500,
+!NLAT_GRIB=750,
+!ASCAT_XYGRID=25000 ,
+
+INBTYPEBUFR=1000,
+InbTypeHdf5=50  ,
+!LVARBC_APD=.TRUE.,
+ /
+&BUFR
+GPSSOLMETHOD="MEAN", 
+LPACOME = .TRUE.,
+ORIGINE(1:8) = 80,81,89,180,181,202,212,242,
+
+/
+&NAMSATFREQ
+/
+&HDF5
+HODIM%ConventionName          ='Conventions',
+HODIM%AllowedConventions(1:3) ='ODIM_H5/V2_0','ODIM_H5/V2_1','ODIM_H5/V2_2',
+HODIM%Resolution              =2000.0,
+HODIM%Sample                  =4000,
+HODIM%NbWagon                 =3,
+HODIM%NbSupp                  =0,
+HODIM%TaskName                ='task',
+!HODIM%ChoosenTask             ='pl.imgw.quality.qi_total',
+!HODIM%ChoosenTask             ='be.rmib.clutter.rainbow',
+!HODIM%ChoosenTask             ='be.rmib.et.convective',
+HODIM%ChoosenTask             ='be.rmib.clutter.vertical_gradient',
+!HODIM%ChoosenTask             ='be.rmib.clutter.texture',
+HODIM%GrpElevName             ='dataset',
+HODIM%GrpParamName            ='data',
+HODIM%GrpWhereName            ='where',
+HODIM%GrpWhatName             ='what',
+HODIM%GrpHowName              ='how',
+HODIM%GrpFlagName             ='quality',
+HODIM%ElevName                ='elangle',
+HODIM%NraysName               ='nrays',
+HODIM%NbinsName               ='nbins',
+HODIM%RstartName              ='rstart',
+HODIM%RscaleName              ='rscale',
+HODIM%ObjectName              ='object',
+HODIM%SourceName              ='source',
+HODIM%DateName                ='date',
+HODIM%TimeName                ='time',
+HODIM%SiteHeightName          ='height',
+HODIM%SiteLatName             ='lat',
+HODIM%SiteLonName             ='lon',
+HODIM%StartDateName           ='startdate',
+HODIM%StartTimeName           ='starttime',
+HODIM%QuantityName            ='quantity',
+HODIM%GainName                ='gain',
+HODIM%OffsetName              ='offset',
+HODIM%NoDataName              ='nodata',
+HODIM%NoDetectName            ='undetect',
+HODIM%BeamWidthName           ='beamwidth',
+HODIM%NodeNames(1:6)          ='bejab','behel','bezav','bewid','denhb','frave', 
+/
+&NETCDF
+/
+&GRIB
+/

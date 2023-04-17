@@ -1,0 +1,32 @@
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+#set -x
+#umask 0022
+mkdir -p ${d_BLEND}
+cd ${d_BLEND}
+
+# The 00h LBC is considered a first version of 3d field "analysis"
+cp ${d_LBC}/ELSCF${CNMEXP}ALBC000 fort.11
+
+if [[ ! -e ${d_GUESS}/analysis_surface ]] ; then
+  echo "No surface analysis !"
+  exit 1
+fi
+
+cp ${d_GUESS}/analysis_surface fort.12
+
+
+# blend isba fields from analysis_surface to analysis_atmo
+cp ${d_NAMELIST}/alro_hsis_adds_isba_cy43.nam fort.4
+export DR_HOOK_NOT_MPI=1
+ln -sf ${d_BIN}/ADDSURF ADDSURF
+./ADDSURF
+
+cp fort.11 ${d_GUESS}/analysis
+# make sure the file is really physically copied before triggering forecast:
+sync
+
+@include <tail.h>

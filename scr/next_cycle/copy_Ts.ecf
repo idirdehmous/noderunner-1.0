@@ -1,0 +1,62 @@
+#!/bin/bash
+@manual
+This task saves the first guess (usually the +3h forecast) to a temporary directory for the next cycle.
+
+If this job fails, first re-run once (it may be due to file system latency on the HPC). If it still fails:
+  - has the forecast run correctly?
+  - is the $SCRATCH directory full?
+
+If an IO server is used, this task first has to gather all the partial output files.
+
+If the model uses SURFEX (arome), the surface temperature field is replaced by that of the CANARO analysis.
+
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+set -x
+
+# which hour are we handling (at least CYCLE_INC, maybe others too)
+# this could be "09", so be careful!
+# in "printf" adding "10#" doesn't work, so you mmust strip the leading 0: ${hh#0}
+hh=@FAMILY1@
+
+if [[ $RUNDATE != $COLDSTART ]] ; then
+  # we also need to save the CANARI_ISBA_Ts guess
+  # extract this from first_guess_canari
+  # TODO: OR save that file too...
+  WDIR=$WORKDIR/canari_Ts/$hh
+  mkdir -p $WDIR
+  cd $WDIR
+  rm -f *
+  ln -sf ${d_GUESS}/first_guess_canari ICMSHCTPSINIT
+  # FIXME: when using IO_SERVER, this may not yet exist!
+  if [[ $NPROC_IO -gt 0 ]] ; then
+    ln -s ${d_BIN}/lfitools .
+    ./lfitools facat all \
+      ${d_FC}/io_serv.0000*/ICMSH${CNMEXP}+00${hh}.gridall \
+      ${d_FC}/io_serv.0000*/ICMSH${CNMEXP}+00${hh}.speca.???? \
+      PFCPTS${DOMAIN}+0000  
+  else
+    cp ${d_FC}/ICMSH${CNMEXP}+$(printf %04d ${hh#0} ) PFCPTS${DOMAIN}+0000
+  fi
+
+  cat ${d_NAMELIST}/arom_nhsx_addsurf ${d_NAMELIST}/${DOMAIN}.${NLEVELS} > fort.4
+  cat  << ENDF >> fort.4
+ &NAMFPC
+   CFPFMT='LELAM',
+   CFPDOM(1)='CPTS',
+   CFPPHY(1)='SURFTEMPERATURE',
+   NFPCLI=0,
+   LFPQ=.FALSE.,
+   NFPCHKDAT=0,
+  /
+ENDF
+  ln -s ${d_BIN}/MASTERODB .
+  $MPIRUN MASTERODB > out.log 2>err.log || echo "ERROR"
+  mv PFCPTS${DOMAIN}+0000 first_guess_Ts_ISBA
+fi
+
+@include <tail.h>

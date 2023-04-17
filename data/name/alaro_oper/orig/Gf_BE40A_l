@@ -1,0 +1,128 @@
+! Namelist for GRIB conversion program (fagrib)
+! Local Table 228 (aladin)
+! Large domain lambert full resolution
+&NAMREF
+!------------------- General Settings -----------------------------
+ICENT={Gcentre},
+IMODEL={Gmodel},
+ITAB2=228,
+NBITS=12,
+MATO=1, MABO=1, MALE=1, MARI=1, ! Set Clipping Margins
+NULNORM=12
+!-------------------------------------------------------------------
+/
+&NAML
+! Now continue with first parameter: Mean sea-level pressure.
+ CPREF='MSL',
+ CNOMA='PRESSURE',
+ NBLEV=1,
+ JLEVEL(1)=0,
+ IPARA=041,
+ ILEVTYPE=1, ! Level type: 200 (ECMWF) not allowed, replace by 1
+/
+! 200m RH:
+&NAML
+ CPREF='H',
+ CNOMA='HUMI_RELATIV',
+ NBLEV=1,
+ JLEVEL(1)=200,
+ IPARA=106,
+ ZMUL=100., ! Multiply by 100 to get %
+/
+!---------Pressure levels FIELDS at HALF RESOLUTION -----------------
+&NAML
+ CPREF= 'P',
+ CNOMA= 'GEOPOTENTIEL',
+ NBLEV=5,
+ JLEVEL(1)=300,500,700,850,925,
+ IPARA=096,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'TEMPERATURE',
+ NBLEV=5,
+ JLEVEL(1)=300,500,700,850,925,
+ IPARA=098,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'HUMI_RELATIV',
+ NBLEV=4,
+ JLEVEL(1)=500,700,850,925,
+ IPARA=106,
+ ZMUL=100., ! Convert to %
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'THETA_PRIM_W',
+ NBLEV=5,
+ JLEVEL(1)=300,500,700,850,925,
+ IPARA=102,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'VITESSE_VERT',
+ NBLEV=4,
+ JLEVEL(1)=500,700,850,925,
+ IPARA=109,                 ! Value given in  Pa/s
+/
+! WIND
+&NAML
+ CPREF= 'P',
+ CNOMU= 'VENT_ZONAL',
+ CNOMV= 'VENT_MERIDIE',
+ LWIND=.FALSE.,
+ NBLEV=5,
+ JLEVEL(1)=300,500,700,850,925,
+ IPARU=107,
+ IPARV=108,
+/
+! IRM Table 228 : AV=210, PV=212, AVA=211, PVA=213,TA=215
+! Absolute Vorticity and its advection at 300 and 500 hPa: 
+&NAML
+ CPREF= 'P',
+ CNOMA= 'ABS_VORTICIT',
+ NBLEV=2,
+ JLEVEL(1)=300,500,
+ IPARA=112,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'ABS_VORTICIT',
+ CNOMU= 'VENT_ZONAL',
+ CNOMV= 'VENT_MERIDIE',
+ NBLEV=2,
+ JLEVEL(1)=300,500,
+ LADV=.TRUE.
+ IPARA=091,
+/
+! Potential Vorticity and its advection at 300 and 500 hPa: 
+&NAML
+ CPREF= 'P',
+ CNOMA= 'POT_VORTICIT',
+ NBLEV=2,
+ JLEVEL(1)=300,500,
+ IPARA=113,
+/
+&NAML
+ CPREF= 'P',
+ CNOMA= 'POT_VORTICIT',
+ CNOMU= 'VENT_ZONAL',
+ CNOMV= 'VENT_MERIDIE',
+ NBLEV=2,
+ JLEVEL(1)=300,500,
+ LADV=.TRUE.
+ IPARA=093,
+/
+&NAML
+! Temperature Advection at 700 and 500 hPa: 215 
+ CPREF= 'P',
+ CNOMA= 'TEMPERATURE',
+ CNOMU= 'VENT_ZONAL',
+ CNOMV= 'VENT_MERIDIE',
+ NBLEV=2,
+ JLEVEL(1)=700,500,
+ LADV=.TRUE.
+ IPARA=094,
+/
+!--END Gf_BE40A_l END---

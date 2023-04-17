@@ -1,0 +1,79 @@
+@manual
+This script produces Pseudo-soundings and listings from FA output. At this moment, it is unclear whether these files are still in fact used by anyone.
+
+Historically, they were transfered to AFD into the GRIB directory.
+
+@end
+@include <head.h>
+@include <settings.h>
+
+# Load modules
+. ${MODULESHOME}/init/bash
+module purge
+module use /home/ald_team/modules
+module load aladin/2018b
+
+set -x
+
+TransS="AS_:${STORAGE}/"
+ASdomnam="be40a_l:soun_BS40 be40a_l:surf_BS40 BE70c_l:sethy_BL70 BE70c_l:agri_BL70"
+# NOTE as_soun_BS40 seem to be missing in oper suite! also is crashing every day
+#      BUT nobody seems to notice!
+#
+# CHECK:
+range=$(seq -f%0sg 0 1 60)
+WDIR=$WORKDIR/products/soundings
+mkdir -p $WDIR
+cd $WDIR
+# =============================
+# (4) Sounding Data extraction
+# =============================
+echo "======================================"
+echo "    PSEUDO-SOUNDINGS AND LISTINGS "
+echo "======================================"
+# loop over the separate tasks in ASdomnam
+LOG=also.log
+mdh=$(echo $RUNDATE | cut -c 5-10)
+
+for NAM in ${ASdomnam} ; do 
+   domg=${NAM%%:*}
+   clien=${NAM##*:}
+   nml=${d_NAMELIST}/as_${clien}
+   FILES=''
+   merged_outfile=AS_${clien}$mdh
+   for hh in ${range} ; do 
+     infile=${d_POST}/PF${CNMEXP}${domg}+00$hh
+     outfile=as_${clien}+${hh}
+     [ -f $outfile ] && outfile=${outfile}_x
+     echo RUNNING: also $nml $infile $outfile >>$LOG
+     also $nml $infile $outfile >>$LOG 2>&1 
+     FILES="$FILES $outfile"
+    # 2. Combine the range outputs into a single file:
+     [ -s $merged_outfile ] || {
+       echo "CREATING HEADER IN $merged_outfile ">>$LOG
+       cat $outfile | awk ' { if ($0 ~ /^.. [0-9]/) exit
+                  else if (NR>1) print $0 
+                  else print $1 " " $2 }' >${merged_outfile}
+       }
+
+   # data: different for Soundings and for Listings !
+     if echo ${clien} |grep -iq Soun ; then
+     # Soundings
+       # echo "COMPILING SOUNDINGS INTO $merged_outfile: $FILES "
+       cat $outfile |awk '/^.. [0-9]/,/EOF/ {print $0}' >>$merged_outfile
+     else # Listings
+       # echo "COMPILING LISTINGS INTO $merged_outfile : $FILES"
+      echo 'ENDFILE'>>$outfile
+      cat $outfile |awk '/^[0-9]/ {if (l1 != "") print l1 ; l2=substr($0,1,6)}
+            /^SUR/   {l1=sprintf("%s %s",l2,substr($0,5))}
+            /^PBL/ {l1=sprintf("%s %s",l1,substr($0,5))}
+            /^S0/   {l1=sprintf("%s %s",l1,substr($0,5))} 
+            /ENDFILE/ {print l1}' >>$merged_outfile
+    fi
+  done
+  # Copy the merged_outfile to AFD
+  # /mnt/afd_shelf/models/alaro/oper/GRIB/ao40/<RR>
+
+done
+
+@include <tail.h>

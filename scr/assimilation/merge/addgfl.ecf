@@ -1,0 +1,47 @@
+#!/bin/bash 
+@manual
+Add upper air fields after 3dVar
+@end
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+
+#------------------------------------------------------------------------------
+# PREPARATION OF THE ANALYSIS FOR THE NEXT FORECAST 
+# IN AROME NON-HYDROSTATIC FIELDS ARE NOT WRITTEN INTO ANALYSIS 
+# ADD THEM TO IT TO CREATE A COMPLETE INITIAL STATE 
+#------------------------------------------------------------------------------
+
+WDIR=${WORKDIR}/merge
+mkdir -p $WDIR
+cd $WDIR
+rm -f *
+
+ln -sf ${d_BIN}/ADDSURF .  
+cp -f  ${d_3DVAR}/MXMINI999+0000        fort.11
+cp -f  ${d_LBC}/ELSCF${CNMEXP}ALBC000   fort.12
+#cp -f  ${d_NAMELIST}/namel_add_nhf             fort.4
+
+cat << EOF > fort.4
+&NAML
+NBC=9,
+CDPREFM(1)='S',CDSUFM(1)='CLOUD_WATER ', NBNIV(1)=$NLEVELS,LOPC(1)=.F.,
+CDPREFM(2)='S',CDSUFM(2)='ICE_CRYSTAL ', NBNIV(2)=$NLEVELS,LOPC(2)=.F.,
+CDPREFM(3)='S',CDSUFM(3)='SNOW ',        NBNIV(3)=$NLEVELS,LOPC(3)=.F.,
+CDPREFM(4)='S',CDSUFM(4)='RAIN ',        NBNIV(4)=$NLEVELS,LOPC(4)=.F.,
+CDPREFM(5)='S',CDSUFM(5)='GRAUPEL ',     NBNIV(5)=$NLEVELS,LOPC(5)=.F.,
+CDPREFM(6)='S',CDSUFM(6)='TKE ',         NBNIV(6)=$NLEVELS,LOPC(6)=.F.,
+CDPREFM(7)='S',CDSUFM(7)='PRESS.DEPART ',NBNIV(7)=$NLEVELS,LOPC(7)=.F.,
+CDPREFM(8)='S',CDSUFM(8)='VERTIC.DIVER ',NBNIV(8)=$NLEVELS,LOPC(8)=.F.,
+CDPREFM(9)='S',CDSUFM(9)='CLOUD_FRACTI ',NBNIV(9)=$NLEVELS,LOPC(9)=.F.,
+/
+EOF
+
+$MPIRUN  -np 1   ./ADDSURF
+mv fort.11     ${d_GUESS}/analysis
+
+@include <tail.h>
+

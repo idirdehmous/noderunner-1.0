@@ -1,0 +1,5 @@
+This directory contains tasks that are run AFTER the forecast and all post-processing has finished.
+So these "products" are single tasks that can depend on model output and post-processed data.
+
+Examples: archiving, transfer, ...
+

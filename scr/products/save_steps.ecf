@@ -1,0 +1,30 @@
+@include <head.h>
+@include <settings.h>
+@manual
+# transfer the STEPS output file
+@end
+
+PREFIX="@PREFIX_STEPS@"
+# Archive location for the NWP output for STEPS-BE.
+ARCHIVE_PATH="@ARCH_PATH@"
+#ARCH_HOST="@ARCH_HOST@"
+
+cd ${WORKDIR}/forecast
+
+
+FCTIME=${YYYY}${MM}${DD}${RR}
+STEPS_NC="${PREFIX}_${FCTIME}_steps.nc"
+
+[ -e $STEPS_NC ] || {
+  echo "File $STEPS_NC not found!"
+  exit 1
+}
+
+# Archive converted output.
+DATEPATH=${YYYY}/${MM}
+# STEPS_BE is also mounted on login node, so we could copy "locally"
+#mkdir -p ${ARCHIVE_PATH}/$DATEPATH
+#cp ${STEPS_NC} ${ARCHIVE_PATH}/$DATEPATH
+archive_save ${STEPS_NC} ${ARCH_HOST}:${ARCHIVE_PATH}/${DATEPATH}
+
+@include <tail.h>

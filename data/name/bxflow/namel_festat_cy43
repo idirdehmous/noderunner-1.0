@@ -1,0 +1,46 @@
+&NAMFESTAT
+  LELAM=.TRUE.,
+  LSTABAL=.TRUE.,
+  LANAFBAL=.TRUE.,
+  OUTBAL='{stabbal_file}',
+  OUTCVT='{stabcvt_file}',
+  OUTCVU='{stabcv_file}',
+  NMSMAX={nmsmax},
+  NSMAX={nsmax},
+  NDGL={ndgl},
+  NDLON={ndlon},
+  NDGUX={ndgux},
+  NDLUX={ndlux},
+  NCASES={ncases},
+  ELON1={elon1},
+  ELAT1={elat1},
+  ELON2={elon2},
+  ELAT2={elat2},
+  ELON0={elon0},
+  ELAT0={elat0},
+  EDELX={edelx},
+  EDELY={edely},
+  NPRINTLEV=0,
+  NCASES_INMEM=20, !number of cases stored in memory
+  NPRTRW=1,
+  NPRTRC={nproc},
+  MASTERW=1,
+  MASTERK=1,
+  MASTERC={nproc},
+  NPRTRK=1,
+  LUVBAL=.FALSE.,  !to introduce the Ald mean wind in the (T,ps) balance
+  NIOPRK=1,
+  LMODDIV=.FALSE., !.TRUE. to solve linear regression problem div=f(Pb) on denormalized spectral covariances
+  LMODDT=.FALSE.,
+  LMODDTQ=.FALSE.,
+  LMODBIAS=.TRUE.,
+  LMODNORM=.FALSE.,
+  LBWRFIX=.TRUE.,
+  NPROMA=0,
+  NSTART=0,
+  NHOUR=0,
+  LOZONE=.FALSE.,  !to compute ozone covs as well
+  LOZBAL=.FALSE.,  !to generate a balance operator for ozone
+  CNAME='{cname}',
+/
+

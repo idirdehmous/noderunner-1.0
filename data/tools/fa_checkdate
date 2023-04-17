@@ -1,0 +1,52 @@
+#! /usr/bin/env python3
+# read the date information and lead time from a FA file
+# return YYYYMMDDRR+HH
+import sys
+
+# TODO: options to return rundate, lead time or valid date?
+fname = sys.argv[1]
+
+
+# from file header: section size in 8-byte words
+f1 = open(fname, "rb")
+f1.seek(0)
+section_size = 8*int.from_bytes(f1.read(8), byteorder='big')
+#print("Section size: "+str(section_size))
+# TODO: check that this is a valid FA file (read parts of the header)
+
+# check that "DATE-DES-DONNEES" is the 7th field in the list
+f1.seek(section_size)
+i=0
+while f1.read(16) != b"DATE-DES-DONNEES" and i < 10 :
+  i = i+1
+
+if i==10 :
+  print("DATE-DES-DONNEES field not found. Are you sure this is a regular FA file?")
+  exit()
+
+
+#print("Found date in field number "+str(i))
+# now find the byte location 
+f1.seek(2*section_size + i*16 )
+date_len = int.from_bytes(f1.read(8), byteorder='big') # ==11
+date_loc = int.from_bytes(f1.read(8), byteorder='big')
+
+# jump to data and read 11 integers (8 byte, big-endian)
+f1.seek(8*(date_loc-1))
+# does this read 11 integers? Or just repeat the first?
+date_fields=[ int.from_bytes(f1.read(8), byteorder='big') for i in range(0,11) ]
+
+f1.close()
+# run date/time:
+yyyy = str(date_fields[0]).zfill(4)
+mm   = str(date_fields[1]).zfill(2)
+dd   = str(date_fields[2]).zfill(2)
+rr   = str(date_fields[3]).zfill(2)
+#MM   = str(date_fields[4]).zfill(2) # 00
+
+# lead time:
+hh   = str(date_fields[6]).zfill(2)
+
+print(yyyy+mm+dd+rr+"+"+hh)
+
+

@@ -1,0 +1,48 @@
+@manual
+A generic post-processing task.
+If this task fails, first check whether the input file is available.
+Sometimes the file is available with a few seconds delay because of file system latency. In that case, just rerun this task.
+
+If not, you may have to re-run the actual forecast.
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+set -x
+
+hh=@PPHH:00@
+pp_name=@pp_name:""@
+
+# convert "d1;d2;d3" to a list
+domain_list=( $(echo @pp_domain@ | tr "," " ") )
+n_domains=${#domain_list[@@]}
+
+# prepare directory
+WDIR=${d_POST}
+
+# Now we may have to loop over the output domains
+
+#for pp_domain in $domain_list ; do
+for nd in $(seq 0 1 $(( n_domains - 1)) ) ; do
+  pp_domain=`echo ${domain_list[$nd]} | cut -d: -f1`
+  pp_grib=`echo ${domain_list[$nd]} | cut -d: -f2`
+  echo "GRIB CONVERSION $pp_domain -> $pp_grib"
+  fafile=PF${CNMEXP}${pp_domain}+00$hh
+  gribfile=${pp_grib}${MM}${DD}${RR}_${hh}.grib2
+
+  case ${CNMEXP} in 
+    AO40) gmodel=14 ;;
+    AO13) gmodel=113 ;;
+    AR13) gmodel=213 ;;
+    *) gmodel=255 ;;
+  esac
+ 
+  # TODO: run conversion script
+done
+
+echo === FINISHED ===
+
+@include <tail.h>
+

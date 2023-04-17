@@ -1,0 +1,469 @@
+! AL43 version
+! Namelist  FPOS for post-processing model results
+! SEE names between {} for values to adapt (domaine and nbproc)
+!-------------------------------------------------------------
+&NACIETEO 
+/
+&NACOBS
+/
+&NACTAN
+/
+&NACTEX
+/
+&NACVEG
+/
+&NADOCK
+/
+&NAEAER
+/
+&NAECOAPHY
+/
+&NAEPHLI
+/
+&NAEPHY
+/
+&NAERAD
+LRRTM=.F.
+LSRTM=.F.
+NMCICA=0
+/
+&NAEVOL
+/
+&NAIMPO
+/
+&NALORI
+/
+&NAMAFN
+  GFP_10U%IBITS=12,GFP_10V%IBITS=12,
+  GFP_2T%IBITS=12,
+  GFP_CAPE%IBITS=16,
+  GFP_CCC%IBITS=16,
+  GFP_CCP%IBITS=16,
+  GFP_CCSF%IBITS=16,
+!  GFP_CDNI%CLNAME='SURFDIR.NORM.IRR', ! AD: why?
+  GFP_CDNI%IBITS=16,
+!  GFP_CGNI%CLNAME='SURFGLB.NORM.IRR', ! only if also in FP... 
+  GFP_CGNI%IBITS=16,
+  GFP_CLSP%IBITS=16,
+  GFP_CLSS%IBITS=16,
+  GFP_HCC%IBITS=8,
+  GFP_LCC%IBITS=8,
+  GFP_MCC%IBITS=8,
+  GFP_MXCLWC%CLNAME='CLS.MXCLWC',
+  GFP_MXCLWC%IBITS=12,
+  GFP_TCC%IBITS=8,
+  GFP_VISICLD%IBITS=12,
+  GFP_VISIHYD%IBITS=12,
+  GFP_X10U%IBITS=12,GFP_X10V%IBITS=12,
+  GFP_X2RH%IBITS=12,
+  GFP_X2T%IBITS=12,
+  GFP_X2TPW%IBITS=12,
+  GFP_XCAPE%IBITS=16,
+  GFP_XCCC%IBITS=16,
+  GFP_XCLPH%IBITS=12,
+  GFP_XHCC%IBITS=8,
+  GFP_XLCC%IBITS=8,
+  GFP_XMCC%IBITS=8,
+  GFP_XMOCO%IBITS=16,
+  GFP_XMRT%IBITS=12,
+  GFP_XN2T%IBITS=12,
+  GFP_XPTYPE%IBITS=12,
+  GFP_XPTYPESEV%IBITS=12,
+  GFP_XPTYPE2%IBITS=12,
+  GFP_XPTYPESEV2%IBITS=12,
+  GFP_XTCC%IBITS=8,
+  GFP_XUGST%IBITS=12,GFP_XVGST%IBITS=12,
+  GFP_XX2T%IBITS=12,
+  TFP_ETH%IBITS=12,
+  TFP_FGST%IBITS=12,
+  TFP_HCLP%CLNAME='CLPMHAUT.MOD.XFU',
+  TFP_HU%IBITS=12,
+  TFP_I%IBITS=16,
+  TFP_L%IBITS=16,
+  TFP_MSL%IBITS=12,
+  TFP_P%IBITS=16,
+  TFP_PV%IBITS=16,
+  TFP_RR%IBITS=16,
+  TFP_SN%IBITS=16,
+  TFP_T%IBITS=12,
+  TFP_THPW%CLNAME='THETA_P_W',
+  TFP_THPW%IBITS=12,
+  TFP_TKE%CLNAME='TKE',
+  TFP_TKE%IBITS=16,
+  TFP_U%IBITS=12,
+  TFP_V%IBITS=12,
+  TFP_VV%IBITS=16,
+  TFP_Z%IBITS=16,
+/
+&NAMARG
+CNMEXP='{cnmexp}'
+CUSTOP='t0'
+LECMWF=.F.
+LELAM=.T.
+LSLAG=.F.
+NCONF=1
+TSTEP=1800.
+UTSTEP=1800.
+NSUPERSEDE=1,
+/
+&NAMARPHY
+/
+&NAMCA
+/
+&NAMCAPE
+GCAPEPSD=10000.,
+/
+&NAMCFU
+    NFRCFU=1,
+    NCFUTS(0)=-1, -72, ! no separate storage of accumulated fluxes
+/
+&NAMCHEM
+/
+&NAMCHET
+/
+&NAMCHK
+/
+&NAMCLA
+/
+&NAMCLDP
+/
+&NAMCLI
+/
+&NAMCLOP15
+/
+&NAMCLTC
+/
+&NAMCOK
+/
+&NAMCOM
+/
+&NAMCT0
+   NFPOS=1,      ! ON LINE Full Pos 
+   NSPPR=1,         ! spectrum are printed
+   NFRHIS=1,         ! No historic files, no POS
+   NHISTS(0)=1,1     !   (so only after 1 hour)
+   NFRPOS=1,         ! 1 pp file
+   NPOSTS(0)=1,0,    ! at range +0
+ CNPPATH='{cnppath}',      ! if not ' ' use selection file in xxt00000000 
+/
+&NAMCT1
+    LRFILAF=.FALSE.,         ! avoid lfi files catalog
+    N1HIS=0,
+/
+&NAMCUMF
+/
+&NAMCUMFS
+/
+&NAMCVER
+/
+&NAMCVMNH
+/
+&NAMDDH
+/
+&NAMDFI
+/
+&NAMDIM
+/
+&NAMDIMO
+/
+&NAMDIM_TRAJ
+/
+&NAMDPHY
+/
+&NAMDYN
+/
+&NAMDYNA
+/
+&NAMDYNCORE
+/
+&NAMEMIS_CONF
+/
+&NAMENKF
+/
+&NAMFA
+! Default GRIB coding in FA files:
+   NBITPG=16, ! GP fields over 16 bits (def=24)
+   NBITCS=16, ! SP fields over 16 bits (def=24)
+/
+! namfpc, namfpd, namfpg in separate file
+&NAMFPDY2
+/
+&NAMFPDYF
+/
+&NAMFPDYH
+/
+&NAMFPDYI
+/
+&NAMFPDYP
+/
+&NAMFPDYS
+/
+&NAMFPDYT
+/
+&NAMFPDYV
+/
+&NAMFPF
+! Full Pos Spectral filter
+   LFPBED=.TRUE.,
+   RFPBED=4.0,
+/
+&NAMFPIOS
+ NFPXFLD=20, ! max. number of fields to be extracted at once
+/
+&NAMFPMOVE
+/
+&NAMFPPHY
+/
+&NAMFPSC2
+NFPROMA=-50
+/
+&NAMFPSC2_DEP
+NFPROMA_DEP=-50
+/
+&NAMGEM
+/
+&NAMGFL
+YI_NL%LGP=.T.,   
+YL_NL%LGP=.T.,   
+YQ_NL%LSP=.T.,
+YR_NL%LGP=.T.,
+YS_NL%LGP=.T.,
+/
+&NAMGRIB
+/
+&NAMGWD
+/
+&NAMGWDIAG
+/
+&NAMGWWMS
+/
+&NAMIAU
+/
+&NAMICE
+/
+&NAMINI
+LDFI=.F.
+/
+&NAMINTFLEX
+/
+&NAMIOMI
+/
+&NAMIOS
+/
+&NAMIO_SERV
+/
+&NAMJBCODES
+/
+&NAMJFH
+/
+&NAMJG
+/
+&NAMLCZ
+/
+&NAMLSFORC
+/
+&NAMMARS
+/
+&NAMMCC
+/
+&NAMMCUF
+/
+&NAMMKODB
+/
+&NAMMODERR
+/
+&NAMMTS
+/
+&NAMMWAVE
+/
+&NAMNPROF
+/
+&NAMNUD
+/
+&NAMOBS
+/
+&NAMONEDVAR
+/
+&NAMOOPS
+/
+&NAMOPH
+NCADFORM=1
+/
+&NAMOPTCMEM
+/
+&NAMPAR0
+  LMPOFF=.F.,  ! T to work with no MPI on PC
+  LOPT_SCALAR=.T.,
+  MP_TYPE=2,
+  MBX_SIZE=20000000 !-128000000, !Mailbox size
+  NPROC={nproc},
+  NPRGPNS={nproc},
+  NPRGPEW=1,
+  NPRTRW={nproc},
+  NPRTRV=1,
+!  LDETAILED_STATS=.T.,
+  LSTATS=.T., ! True for trace of all calls to gstats
+  NTRACE_STATS=8,      ! max number of entries in trace
+/
+&NAMPAR1
+! module yommp:
+LEQ_REGIONS=.F.
+LSPLIT=.F.,
+NSTRIN={nproc},
+NSTROUT=1,
+NOUTTYPE=3, ! =1 With LMPOFF=.T., else take =3
+/
+&NAMPARAR
+/
+&NAMPHMSE
+/
+&NAMPHY
+ LVGSN=.T.,    ! if .TRUE. => requires additional files
+ LCONDWT=.T.,
+  LPROCLD=.FALSE.,
+/
+&NAMPHY0
+/
+&NAMPHY1
+/
+&NAMPHY2
+/
+&NAMPHY3
+/
+&NAMPHYDS
+/
+&NAMPONG
+/
+&NAMPPC
+! Post Processing Control Common
+/
+&NAMPPVI
+/
+&NAMPRE
+/
+&NAMRAD15
+/
+&NAMRCOEF
+/
+&NAMRCF
+/
+&NAMRES
+/
+&NAMRGRI
+/
+&NAMRINC
+/
+&NAMRIP
+/
+&NAMRLX
+/
+&NAMSATS
+/
+&NAMSCC
+/
+&NAMSCEN
+/
+&NAMSCM
+/
+&NAMSEKF
+/
+&NAMSENS
+/
+&NAMSIMPHL
+/
+&NAMSPNG
+/
+&NAMSPSDT
+/
+&NAMSTA
+/
+&NAMSTEPS
+/
+&NAMSTOPH
+/
+&NAMSWE
+/
+&NAMTEST
+/
+&NAMTESTVAR
+/
+&NAMTHLIM
+/
+&NAMTOPH
+/
+&NAMTRAJP
+/
+&NAMTRANS
+/
+&NAMTRANS0
+/
+&NAMTS
+/
+&NAMVAR
+/
+&NAMVARBC
+/
+&NAMVARBC_AIREP
+/
+&NAMVARBC_ALLSKY
+/
+&NAMVARBC_GBRAD
+/
+&NAMVARBC_RAD
+/
+&NAMVARBC_SFCOBS
+/
+&NAMVARBC_TCWV
+/
+&NAMVARBC_TO3
+/
+&NAMVAREPS
+/
+&NAMVDF
+/
+&NAMVDOZ
+/
+&NAMVOLCANO
+/
+&NAMVRTL
+/
+&NAMVV0 !NEW IN CY38
+/
+&NAMVV1
+! Laisser les niveaux de l'entree !
+/
+&NAMVWRK
+/
+&NAMWAVELETJB
+/
+&NAMXFU
+/
+&NAM_CANAPE
+/
+&NAM_DISTRIBUTED_VECTORS
+/
+&NAPHLC
+/
+&NEMCT0
+/
+&NEMDIM
+! NBZONL, NBZONG: see input file via command line
+/
+&NEMDYN
+/
+&NEMELBC0A
+/
+&NEMELBC0B
+/
+&NEMFPEZO
+/
+&NEMGEO
+! see input file via command line
+  LMAP   =.TRUE.,
+/
+&NEMJK
+/
+&NEMVAR
+/
+&NEMWAVELET
+/

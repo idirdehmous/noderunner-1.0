@@ -1,0 +1,13 @@
+#! /bin/bash
+suite=$(basename `pwd`)
+rundate=$1
+
+#1. Make sure nothing else is still running
+ecflow_client --force=complete recursive /$suite/cycle
+
+#2. set the COLDSTART variable 
+ecflow_client --alter=change variable COLDSTART "$rundate" /$suite
+
+#3. restart the suite
+./restart $rundate
+

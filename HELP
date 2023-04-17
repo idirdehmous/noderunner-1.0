@@ -1,0 +1,3 @@
+ecflow_client --alter=delete time /arome_v2/main_cycle/21/wait
+ecflow_client --alter=add time 03:30 /arome_v2/main_cycle/21/wait
+ecflow_client --force=complete recursive /arome_v2/main_cycle/00

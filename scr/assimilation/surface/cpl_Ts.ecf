@@ -1,0 +1,46 @@
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+#-- create directory
+#RecreateDir ${d_ADDFIELDS}
+mkdir -p ${d_ADDFIELDS}
+cd ${d_ADDFIELDS}
+#
+#-------------------------------------#
+# ISBA surface temperature for SURFEX
+#-------------------------------------#
+# CANARI only expects the ISBA tile surface temperature, but SURFTEMPERATURE in the first guess is 
+# taken over all tiles. Not what you actually assimilate.
+# So to run CANARI, we must replace it with a suitable alternative.
+# Ideally, "SFX.TS" from first_guess_sfx. But this field is not bi-periodicised correctly.
+# "SFX.TG1" is ground temp, but has no data on the sea.
+# For now, we use the trick of taking the SURFTEMPERATURE from the previous ANALYSIS (3h earlier)
+# remember to set LOPC=.T. (=overwrite existing field)
+# ADDFIELDS : copies fields from "fort.12" into "fort.11"
+#             if fort.12 is missing: fields are set to zero!
+# ??? analysis or first_guess_canari ??
+prev_analysis=$BASEDIR/work/run${PREV_RR}/guess/first_guess_canari
+if [[ -e ${prev_analysis} ]] ; then
+  ln -sf ${prev_analysis} fort.12
+  cp ${d_GUESS}/first_guess fort.11
+#cp ${d_NAMELIST}/nam.addsurf.tsurf fort.4
+  cat  << ENDF > fort.4
+&NAML
+ NBC=1,
+ CDPREFM(1) = 'SURF',
+ CDSUFM(1)   = 'TEMPERATURE',
+ LOPC(1)=.TRUE.
+/
+ENDF
+  export DR_HOOK_NOT_MPI=1
+  ${d_BIN}/ADDSURF
+  mv fort.11 ${d_GUESS}/first_guess_ts
+  ln -sf ${d_GUESS}/first_guess_ts ${d_GUESS}/first_guess
+else
+  echo "NO PREVIOUS CANARI ANALYSIS AVAILABLE. COLDSTART???"
+  # do nothing
+fi
+
+
+@include <tail.h>

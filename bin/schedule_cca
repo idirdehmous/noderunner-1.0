@@ -1,0 +1,270 @@
+#!/bin/bash
+#==========================================================================
+## ecf submit/status/kill for ECMWF
+## SPECIFIC FOR NodeRunner !
+## Alex Deckmyn, 2021-06-14
+#==========================================================================
+
+##  schedule_ecmwf <options> usser host file <task>
+##
+##  Decides according to host argument which submit method to use.
+##  On PBS platforms this uses qsub to submit the job
+##  On other platforms, we may use "nohup", slurm, ...
+##  $0 is the command name: submit, kill, status
+
+set -x
+#echo $0 $* > $HOME/debug
+
+USAGE="Usage: $0 [options] <user> <host> <filename|ID> <output>"
+# -h : help
+# -r : use operational reservation if available
+# -d <outfile> : write debugging info to <outfile>
+# -r <PBSOPTION> : add a PBS option to the submit command
+pbsoptions=""
+oper_queue="no"
+#jobout="/dev/null" # the output of the submission script
+jobout=$HOME/debug
+
+# we could add -q XXX explicitely for defining the queue
+# but we prefer to pass all PBS options via -o
+# THE LAST OPTION MUST BE THE TASK
+
+action=${@:$#} # the last entry of command line is the action 
+               # must be submit|status|kill
+# action=${@: -1}  # also works
+
+while getopts hrd:o: opt
+do
+    case $opt in
+      h) echo -e $USAGE; exit ;;
+      d) jobout="$OPTARG"
+         ;;
+      r) oper_queue=yes
+         echo "OPERATIONAL QUEUE not supported!" >> $jobout
+#         exit 1
+         ;;
+      o) pbsoptions="$pbsoptions $OPTARG"
+         ;;
+      ?) echo "invalid option $OPTARG" >> $jobout
+         ;;
+    esac
+done
+# skip to arguments that come after the options
+shift $(($OPTIND - 1))
+
+user=$1 # which user (on the remote machine)
+host=$2 # on which machine
+case $action in
+  *submit)       action=submit ; filename=$3 ;;
+  *kill)         action=kill   ; rid=$3 ;;
+  *stat|*status) action=stat   ; rid=$3 ;;
+  *) action="error" ; exit 1 ;;
+esac
+
+# Error handling and cleanup
+# FIXME: is there a way to see the error message in ecflow_ui ?
+function ERROR { 
+  err=$?
+  echo "ERROR $0: $* $? - Exiting." >> $jobout
+  echo "ERROR $0: $* $? - Exiting." >&2 $*
+#  [[ -f $ecfjobsub ]] && grep "has been submitted" $ecfjobsub && exit 0
+# Unable to run job: failed receiving gdi request # TBD OK
+  exit 1
+}
+
+if [[ $action == "submit" ]] ; then
+#  echo OPTIONS $pbsoptions > $HOME/ttt.ecf
+  ecfjobsub=${filename}.sub
+#--------------------------------------------------------------------------
+#  File must exist!
+#--------------------------------------------------------------------------
+  if [[ ! -f $filename ]] ; then
+    echo "$0: File $filename not found?" >> "$jobout"
+    echo "$0: File $filename not found?"
+    exit 1
+  fi
+  outfile=$4 # where to write the remote output
+  if [[ $outfile == "" ]] ; then
+    echo "No outputfile specified!"
+    echo "No outputfile specified!" >> "$jobout"
+    exit 1
+  else
+    # drop the /hpc part !
+    outfile=`echo $outfile | sed "s|/hpc||"`
+    outdir="$(dirname $outfile)"
+    echo outdir=$outdir >> $jobout
+  fi
+fi
+
+#------------
+#  Debugging
+#------------
+# 
+echo SCHEDULE $action > $jobout
+echo `date` >> $jobout
+echo $action via $type on $user@$host >> $jobout
+if [[ $action = "submit" ]] ; then
+  echo ecfjobsub   = $ecfjobsub   >> $jobout
+  echo outfile     = $outfile     >> $jobout
+  echo PBS options = $pbsoptions  >> $jobout
+fi
+
+#--------------------------------------------------------------------------
+# determine queuing system from hostname
+# (can be replaced by a more refined method later...)
+#--------------------------------------------------------------------------
+
+
+case $host in
+  cca )
+    type=pbs
+## $outfile may have to be adapted as well! 
+## Avoid writing to /tmp on HPC -> replace by /scratch-a/$user
+## NORMALLY, ecflow should have taken care of this, but by default
+## ecflow uses /tmp for local scripts, so a beginner may make a mistake...
+#    outfile=`echo $outfile | sed -e "s/^\/tmp\//\/scratch-a\/$user\//"`
+    PBS=/opt/pbs/default/bin
+    ;;
+#  cca-batch ) # a batch command on cca?
+#    type=pbs # ssh
+#    outfile=`echo $outfile | sed -e "s/^\/tmp\//\/scratch-a\/$user\//"`
+#    PBS=/opt/pbs/default/bin
+#    ;;
+  $hostname | localhost | local )
+    type=local
+    RUNSHELL=/bin/bash
+    ;;
+  * )
+    echo "Host $host not yet supported!"
+    exit 1
+    type=rsh
+    output="/dev/null"
+    RUNSHELL=/bin/bash
+    ;;
+esac
+
+case $type in
+#==========================================================================
+# Submit/Kill/Stat using PBS
+#==========================================================================
+  pbs )
+    QDEL=$PBS/qdel
+    QSTAT=$PBS/qstat
+    case $action in
+      submit)
+        # IF you are going to use the operational reservation, identify it:
+        # NOTE: this will override whatever queue is given in the file header
+        # NOTE: we add /ws/ to the outpath: cross-mounted directory
+### three alternatives:
+### 1) copy the script file to $host and submit it from there
+### 2) simply source the file directly
+### 3) use cross-mounted file system 
+### We currently go for option 3: the actual job script *is not copied* to HPC 
+###   NOTE: the output file can not be on the /ws/... (only available to login nodes)
+###         so we must use the crossmounted /hpc$SCRATCH on ecgate
+###         that should be done from ecflow server, so drop it here!
+        pbsoptions="$pbsoptions -j oe -o $outfile"
+        QSUB="$PBS/qsub $pbsoptions"
+        outsub=${filename}_sub
+        echo "ssh -l $user $host mkdir -p $outdir" >> $jobout
+        ssh -l $user $host mkdir -p "$outdir" >> $jobout
+        echo "ssh -l $user $host $QSUB /ws/$filename" >> $jobout
+        subout=`ssh -l $user $host $QSUB /ws/$filename 2>&1` || {
+          echo $subout >> $jobout
+          ERROR "job submission failed: $subout"
+        }
+        echo $subout >> $jobout
+        jobid=`echo $subout | cut -d. -f1`
+        echo "JOB ID: $jobid" >> $jobout
+        
+### option 2)
+###    we submit the job as "ssh qsub < $filename ..." where $filename is located 
+###    on the server running the ecflow suite
+###    
+###   - remote create directory for job logs
+###   - do you want to write submission output locally ?
+#        ssh $user@$host mkdir -p `dirname $outfile` >> $jobout
+#        echo MKDIR OK >> $jobout
+##        echo ssh $user@$host $QSUB < $filename  >> $jobout
+#        echo ssh $user@$host mkdir -p `dirname $outfile` >> $jobout
+#        subout=`ssh $user@$host $QSUB < $filename 2>&1` || {
+#          echo $subout >> $jobout
+#          ERROR "job submission failed: $subout"
+#        }
+#        jobid=`echo $subout | cut -d. -f1`
+#        echo "JOB ID: $jobid" >> $jobout
+        ## TODO: Can I communicate the job id to ecflow?
+        ##       that would be nice: then we can e.g. kill jobs BEFORE they are running.
+        # ecflow_client needs "header" info etc... which is hidden in job
+        # try "grep ECFPORT" etc ... -> NOT SIMPLE
+        ;;
+      status)
+        echo "STAT not yet supported"
+        exit 1
+        ssh $user@$host $QSTAT $rid
+        ;;
+      kill)
+#        echo ssh $user@$host $QDEL $rid > $HOME/check_kill
+        ssh -l $user $host $QDEL $rid
+        ;;
+    esac
+  ;;
+#==========================================================================
+# Submit using ssh
+#==========================================================================
+  ssh )
+    case $action in
+      submit)  
+### two alternatives: copy the script file to $host and submit it from there
+### or simply source the file directly
+#   NOTE: the second option may give problems if the script contains "ssh" commands
+#         those may need an "-n" option to run correctly!!!
+	cmd="ssh -l $user $host"
+#   [[ $output=="" ]] || outputdir=`dirname $output`
+#	if [[ "$outputdir" != "" ]] ; then
+#		$cmd mkdir -m 775 -p $outputdir 2>&1 || /bin/true
+#	fi
+
+#	if [[ -d $outputdir ]] ; then
+#		chmod 775 $outputdir || /bin/true
+#	fi
+	
+	#
+	#  Submit the job
+	#
+        ssh -l $user $host mkdir -p `dirname $outfile` >> $jobout
+        echo $cmd \"nohup $outfile $RUNSHELL \"  \< ${filename} >> $jobout
+	$cmd "nohup $RUNSHELL > $outfile 2>&1 -s " < ${filename} &
+        # || ERROR "Job submission to ssh nohup failed."
+      ;;
+      kill)
+        $cmd kill $rid
+      ;;
+      status)
+        $cmd ps $rid
+      ;;
+    esac
+  ;;
+#==========================================================================
+# Submit to local or any other workstation using nohup
+#==========================================================================
+  local )
+#    if [[ "$outdir" != "" ]] ; then
+#      $cmd mkdir -m 775 -p $outdir 2>&1 || /bin/true
+#    fi
+    case $action in
+      submit)
+        echo "$RUNSHELL $filename > $outfile 2>&1 " >> $jobout
+        nohup $RUNSHELL $filename > $outfile 2>&1  || ERROR "Job submission to standalone failed." >> $jobout
+      ;;
+      kill) 
+        kill $rid
+      ;;
+      status)
+        ps $rid
+      ;;
+    esac
+  ;;
+esac
+
+exit 0

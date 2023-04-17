@@ -1,0 +1,58 @@
+#!/bin/bash   
+@manual
+This is the "FESTAT" task.
+From (GRIB) model differences created by "FEMARS" a B matrix is produced.
+@end
+
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+# WORKDIR
+WDIR=${WORKDIR}/$(basename @ECF_NAME@)
+mkdir -p $WDIR
+cd $WDIR
+rm -rf *
+
+d_OUT=@BASEDIR@/output
+B_PART=@B_PART@
+CNAME=@CNAME@
+
+# BINARIES 
+ln -sf  ${{d_BIN}}/FESTAT FESTAT 
+
+# GET THE NUMBER OF gribdiff FILES 
+NCASES=$( ls ${d_OUT}/${B_PART}/gribdiff/gribdiff*  | wc -l) 
+
+
+# LOOP OVER gribdiffs 
+for i in $(seq -f "%03g" 1 ${NCASES}  ) ; do  
+  ln -sf  ${d_OUT}/${B_PART}/gribdiff/gribdiff_${i}   ${CNAME}${i}
+done  
+
+# NAMELIST 
+sed -e  "s/{stabbal_file}/@OUTBAL@/g" \
+    -e "s/{stabcvt_file}/@OUTCVT@/g" \
+    -e "s/{stabcv_file}/@OUTCVU@/g"  \
+    -e "s/{nmsmax}/@NMSMAX@/g"        \
+    -e "s/{nsmax}/@NSMAX@/g"          \
+    -e "s/{ndgl}/@NDGL@/g"            \
+    -e "s/{ndlon}/@NDLON@/g"          \
+    -e "s/{ndgux}/@NDGUX@/g"          \
+    -e "s/{ndlux}/@NDLUX@/g"          \
+    -e "s/{ncases}/$NCASES/g"        \
+    -e "s/{elon1}/@ELON1@/g"          \
+    -e "s/{elat1}/@ELAT1@/g"          \
+    -e "s/{elon2}/@ELON2@/g"          \
+    -e "s/{elat2}/@ELAT2@/g"          \
+    -e "s/{elon0}/@ELON0@/g"          \
+    -e "s/{elat0}/@ELAT0@/g"          \
+    -e "s/{edelx}/@EDELX@/g"          \
+    -e "s/{edely}/@EDELY@/g"          \
+    -e "s/{nproc}/$NPROC/g"          \
+    -e "s/{cname}/@CNAME@/g"           ${d_NAMELIST}/namel_festat_cy43 >  fort.4  
+
+${MPIRUN} FESTAT  > out.log   2>err.log
+
+@include <tail.h>

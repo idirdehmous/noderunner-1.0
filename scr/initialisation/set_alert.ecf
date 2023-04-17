@@ -1,0 +1,46 @@
+@manual
+This task initialises the "local alert". It sets a timer that will give an alert
+if the full cycle does not finish within a given time.
+
+If we are in "oper" mode and WALLTIME_CYCLE > 0, the task ../time_alert is queued
+That task will simply show an error if it is not set to complete before "WALLTIME_CYCLE" minutes.
+
+@end
+@include <head.h>
+@include <settings.h>
+
+set -x
+
+# raise an alert if the whole cycle hasn't finished in N minutes:
+
+# NOTE: obviously, this should not be raised in DELAY mode
+# because then we are running on "short" and there is no
+# guarantee that it can run in a certain time.
+if [[ @MODE@ == oper && @WALLTIME_CYCLE:120@ != 0 ]] ; then
+  # current time + walltime_cycle
+  alert_time=`date -u -d "now +@WALLTIME_CYCLE:120@ minutes" +%Y%m%d%H%M`
+
+  alert_YYYY=`echo $alert_time | cut -c 1-4`
+  alert_MM=`echo $alert_time | cut -c 5-6`
+  alert_DD=`echo $alert_time | cut -c 7-8`
+  alert_hhmm=`echo $alert_time | cut -c 9-12`
+  alert_hh=`echo $alert_time | cut -c 9-10`
+  alert_mm=`echo $alert_time | cut -c 11-12`
+
+# NOTE: what if the alert time is just after midnight, so alert_time < current?
+#      just make sure to use the full date as well!
+#      Actually, the trigger statement just checks the DD value and HHMM
+
+  alert_task=/@SUITE@/cycle/@THIS_RUN@/time_alert
+  alert_label="${alert_YYYY}${alert_MM}${alert_DD} ${alert_hh}:${alert_mm}"
+
+  ecflow_client --alter=change defstatus queued $alert_task
+  ecflow_client --alter=change variable ALERT_TIME $alert_hhmm $alert_task
+  ecflow_client --alter=change variable ALERT_YYYY $alert_YYYY $alert_task
+  ecflow_client --alter=change variable ALERT_MM $alert_MM $alert_task
+  ecflow_client --alter=change variable ALERT_DD $alert_DD $alert_task
+  ecflow_client --alter=change label ALERT_TIME "$alert_label" $alert_task
+  ecflow_client --requeue $alert_task
+fi
+
+@include <tail.h>

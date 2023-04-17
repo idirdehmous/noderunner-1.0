@@ -1,0 +1,35 @@
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+module load ecflow/@ECF_VERSION@
+
+set -x
+
+# loop over hours OR call the script for only 1 hour?
+hh=@PPHH:00@
+pp_grib=$(boolean @pp_grib:no@) # boolean returns "yes" or "no"
+pp_domain=$DOMAIN
+pp_name=@pp_name@
+afd_save=$(boolean @afd_save:no@)
+
+if [[ $afd_save == yes ]] ; then
+  afd_path_fa=${AFD_PATH}/ABOF/${CNMEXP,,}/$RR
+fi
+# GRIB : moria:/mnt/afd_repository/arome/GRIB/ar13/$RR
+# FA   : moria:/mnt/afd_repository/arome/ABOF/ar13/$RR
+# for alaro it's actually alaro/[oper|esuite]/ABOF etc
+
+[ -e $d_POST ] || mkdir -p $d_POST
+fafile=PF${CNMEXP}${pp_domain}+00$hh
+mv ${d_FC}/$fafile ${d_POST}
+if [[ $afd_save == yes ]] ; then
+  cd $d_POST
+  afd_save $fafile ${afd_path_fa} $AFD_HOST
+fi
+
+
+echo === FINISHED ===
+
+@include <tail.h>
+

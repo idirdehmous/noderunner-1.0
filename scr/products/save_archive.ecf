@@ -1,0 +1,26 @@
+@include <head.h>
+@include <settings.h>
+
+# make a tar file of model output files (PF****)
+# and save to some archive directory
+# in this case, the DOMAIN is always the model domain
+set -x
+AROOT=@ARCH_ROOT@
+ATAG=@ARCH_TAG:""@
+pp_name=@pp_name:$DOMAIN@
+inline=@inline:no@
+
+if [[ $ATAG = "" ]] ; then
+  tarfile=${AROOT}_${RUNDATE}.tar
+else
+  tarfile=${AROOT}_${RUNDATE}_${ATAG}.tar
+fi
+
+adir=${ARCH_PATH}/$YYYY/$MM/$DD
+# NOTE: the -n is vital when this script is run via ssh nohup ... < script
+#       apparantly, the fact that this script itself is piped directly to ssh causes confusion
+cd ${d_POST}
+tar -cf $tarfile PF${CNMEXP}${pp_name}*
+archive_save $tarfile ${ARCH_HOST}:$adir
+
+@include <tail.h>

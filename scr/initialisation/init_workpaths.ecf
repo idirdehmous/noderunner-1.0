@@ -1,0 +1,42 @@
+@manual
+This task makes sure all local working directories on HPC are ready.
+If it fails, first rerun ../init_suite/create_hpc_paths to make sure all basic paths are correct. Then try again.
+
+If it fails again, there may be a problem with the scratch directory. If so, and if available, run 
+../maintenance/switch_scratch
+to move the whole suite to another scratch directory.
+
+Do not set complete!
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+# 
+# check for directories: work log name etc bin clim packbin const (cycle)
+
+# make sure the basic directories exist
+mkdir -p ${WORKDIR}
+# extreme cleaning:
+rm -rf ${WORKDIR}/*
+
+mkdir -p ${d_FC}
+mkdir -p ${d_LBC}/input
+mkdir -p ${d_POST}
+if [[ $ASSIMILATION == yes ]] ; then
+# FIXME: this "hard-codes" some paths
+#        some are not needed, for instance if there is no 3d Var
+  mkdir -p $d_OBS
+  mkdir -p $d_ODB
+  mkdir -p $d_GUESS
+  for label in surface upper ; do
+    mkdir -p ${WORKDIR}/assimilation/${label}/bator
+    mkdir -p ${WORKDIR}/assimilation/${label}/addfields
+  done
+fi
+
+echo === FINISHED ===
+@include <tail.h>
+

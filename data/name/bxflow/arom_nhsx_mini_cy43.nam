@@ -1,0 +1,559 @@
+&NACIETEO
+/
+&NACOBS
+/
+&NACTAN
+/
+&NACTEX
+/
+&NACVEG
+/
+&NADOCK
+/
+&NAEAEM7
+/
+&NAEAER
+/
+&NAECOAPHY
+/
+&NAEPHLI
+/
+&NAEPHY
+/
+&NAERAD
+  LRRTM=.F.,
+  LSRTM=.F.,
+/
+&NAERCLI
+/
+&NAEVOL
+/
+&NAIMPO
+/
+&NALORI
+/
+&NAMAFN
+/
+&NAMARG
+  CNMEXP='MINI',
+  CUSTOP='h0',
+  LECMWF=.F.,
+  LELAM=.T.,
+  LSLAG=.T.,
+  NCONF=131,
+  NSUPERSEDE=1,
+  UTSTEP=180,
+/
+&NAMARPHY
+/
+&NAMCA
+/
+&NAMCAPE
+/
+&NAMCFU
+/
+&NAMCHEM
+/
+&NAMCHET
+/
+&NAMCHK
+/
+&NAMCLA
+/
+&NAMCLDP
+/
+&NAMCLI
+/
+&NAMCLOP15
+/
+&NAMCLTC
+/
+&NAMCOK
+/
+&NAMCOM
+/
+&NAMCOSJO
+  ! Switch :  use or no  some types of observations in the observation operator 
+  LTC=.F.,
+  NOTVAR(1,1)=-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1 ,-1,-1,-1,-1,-1 ,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,   ! Take only the ZTD from surface obs
+  !NOTVAR(1,2)=0,0,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  !NOTVAR(1,3)=0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  !NOTVAR(1,4)=-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  !NOTVAR(1,5)=0,0,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,
+  !NOTVAR(1,6)=-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  !NOTVAR(1,7)=-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  !NOTVAR(1,8)=-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  !NOTVAR(1,9)=-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  !NOTVAR(1,10)=-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  NOTVAR(1,13)= -1,-1,-1,-1,0,-1,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  ! Take the radar hum profiles
+
+/
+&NAMCOUPLO4
+/
+&NAMCT0
+  LOBS=.T.,               ! Real observations
+  LSIMOB=.F.,             ! Simulated observations
+  LSPRT=.F.,
+  NCNTVAR=2,              ! Control variables are normalized departures of model variables of the background fileds (Vor, div(u,v), (T,Ps), Q )
+  NFPOS=0,                ! Disable fullpos
+  NFRGDI=10000,
+  NFRHIS=10000,
+  NFRPOS=10000,
+  NFRSDI=10000,
+  NGDITS(0)=1,            ! Writing  historical file   (The analysis)
+  NGDITS(1)=1,
+  NHISTS(0)=1,
+  NHISTS(1)=1,
+  !NPOSTS(0)=1,
+  !NPOSTS(1)=0,
+  !NSDITS(0)=0,
+  !NSDITS(1)=0,
+/
+&NAMCT1
+  LRFILAF=.F.,
+/
+&NAMCUMF
+/
+&NAMCUMFS
+/
+&NAMCVER
+/
+&NAMCVMNH
+/
+&NAMDDH
+/
+&NAMDFI
+/
+&NAMDIM
+  NPROMA=-16,
+/
+&NAMDIMO
+/
+&NAMDIM_TRAJ
+/
+&NAMDPHY
+/
+&NAMDYN
+  SIPR=100000.,
+  SITR=270.,
+/
+&NAMDYNA
+/
+&NAMDYNCORE
+/
+&NAMEMIS_CONF
+/
+&NAMENKF
+/
+&NAMFA
+  NBITCS=-1,
+  NBITPG=-1,
+  NSTRON=-1,
+  YFAI%NBITS=12,
+  YFAL%NBITS=12,
+  YFAR%NBITS=12,
+  YFAS%NBITS=12,
+/
+&NAMFPC
+/
+&NAMFPD
+/
+&NAMFPDY2
+/
+&NAMFPDYF
+/
+&NAMFPDYH
+/
+&NAMFPDYI
+/
+&NAMFPDYP
+/
+&NAMFPDYS
+/
+&NAMFPDYT
+/
+&NAMFPDYV
+/
+&NAMFPF
+/
+&NAMFPG
+/
+&NAMFPIOS
+/
+&NAMFPMOVE
+/
+&NAMFPPHY
+/
+&NAMFPSC2
+/
+&NAMFPSC2_DEP
+/
+&NAMGEM
+/
+&NAMGFL
+  YCPF_NL%NREQIN=0,
+  !YDAL_NL%LGP=.T.,
+  !YDAL_NL%LREQOUT=.F.,
+  !YDAL_NL%NREQIN=1,
+  YDOM_NL%LGP=.T.,
+  YDOM_NL%LREQOUT=.F.,
+  YDOM_NL%NREQIN=1,
+  YEFB1_NL%LGP=.T.,
+  YEFB1_NL%LREQOUT=.F.,
+  YEFB1_NL%NREQIN=0,
+  YEFB2_NL%LGP=.T.,
+  YEFB2_NL%LREQOUT=.F.,
+  YEFB2_NL%NREQIN=0,
+  YEFB3_NL%LGP=.T.,
+  YEFB3_NL%LREQOUT=.F.,
+  YEFB3_NL%NREQIN=0,
+  !YI_NL%LGP=.T.,
+  !YI_NL%LREQOUT=.F.,
+  !YI_NL%NREQIN=1,
+  !YL_NL%LGP=.T.,
+  !YL_NL%LREQOUT=.F.,
+  !YL_NL%NREQIN=1,
+  YQ_NL%LREQOUT=.T.,
+  YQ_NL%LGP=.T.,
+  YQ_NL%LSP=.F.,
+  !YR_NL%LGP=.T.,
+  !YR_NL%LREQOUT=.F.,
+  !YR_NL%NREQIN=0,
+  YSPF_NL%NREQIN=0,
+  !YS_NL%LGP=.T.,
+  !YS_NL%LREQOUT=.F.,
+  !YS_NL%NREQIN=1,
+  YTKE_NL%LGP=.T.,
+  YTKE_NL%LREQOUT=.F.,
+  YTKE_NL%NREQIN=0,
+  YTTE_NL%LGP=.T.,
+  YTTE_NL%LREQOUT=.F.,
+  YTTE_NL%NREQIN=0,
+  YUAL_NL%LGP=.T.,
+  YUAL_NL%LREQOUT=.F.,
+  YUAL_NL%NREQIN=0,
+  YUEN_NL%LGP=.T.,
+  YUEN_NL%LREQOUT=.F.,
+  YUEN_NL%NREQIN=0,
+  YUNEBH_NL%LGP=.T.,
+  YUNEBH_NL%LREQOUT=.F.,
+  YUNEBH_NL%NREQIN=0,
+  YUOM_NL%LGP=.T.,
+  YUOM_NL%LREQOUT=.F.,
+  YUOM_NL%NREQIN=0,
+  YDOM_NL%LGP=.T.,
+  YDOM_NL%LREQOUT=.F.,
+  YDOM_NL%NREQIN=0,  
+/
+&NAMGRIB
+/
+&NAMGWD
+/
+&NAMGWDIAG
+/
+&NAMGWWMS
+/
+&NAMIAU
+/
+&NAMICE
+/
+&NAMINI
+/
+&NAMINTFLEX
+/
+&NAMIOMI
+  CFVATRA='VATRH',
+  NMUPD=5,
+/
+&NAMIOS
+/
+&NAMIO_SERV
+/
+&NAMJBCODES
+/
+&NAMJFH
+/
+&NAMJG
+  CONFIG%L3DBGERR=.T.,                       ! Use 3d background error variances (non-separable)
+  CONFIG%LJBBALBETA=.F.,                     ! Use the beta plane approximation
+
+  !Specific Humidity variances inflation
+  CONFIG%LRDQERR=.F.,                        ! .T. Q standard deviations are read from errgrib file  .F. Calculate it from some emperical eq
+  CONFIG%LSBQ_STRATOLOW=.T.,                 ! Set stratospheric values to  1.E-8  (for Q parameter )
+
+  CONFIG%LSPFCE=.T.,                         ! .T. background error normalization in spectral space
+  CONFIG%REDNMC=1.0,                         ! Weight given either for observations or background std (Background Sigma weights are proportional,   default =1.0 )
+/
+&NAMLCZ
+/
+&NAMLSFORC
+/
+&NAMMARS
+/
+&NAMMCC
+/
+&NAMMCUF
+/
+&NAMMKODB
+/
+&NAMMODERR
+/
+&NAMMTS
+/
+&NAMMWAVE
+/
+&NAMNPROF
+/
+&NAMNUD
+/
+&NAMOBS
+  LCACHMT=.T.,
+  LCAPACH=.F.,
+  LMKCMARPL=.F.,
+  LSAATOPZTD=.F.,
+  L_F_SCR_WORK_TS=.F.,
+  NOBSHOR=201,
+/
+&NAMONEDVAR
+/
+&NAMOOPS
+/
+&NAMOPH
+/
+&NAMOPTCMEM
+/
+&NAMPAR0
+  MBX_SIZE=128000000,
+  MP_TYPE=2,
+  NOUTPUT=1,
+  NPROC={nproc},
+  NPRGPNS={nprgpns},
+  NPRGPEW={nprgpew},
+  NPRTRW={nprtrw},
+  NPRTRV={nprtrv},
+/
+&NAMPAR1
+  LSPLIT=.F.,
+  NCOMBFLEN=1800000,
+  NSTRIN={nproc},
+  NSTROUT={nproc},
+/
+&NAMPARAR
+/
+&NAMPHMSE
+/
+&NAMPHY
+  CGMIXLEN='EL0',
+  LAERODES=.T.,
+  LAEROLAN=.T.,
+  LAEROSEA=.T.,
+  LAEROSOO=.T.,
+  LCOEFKSURF=.T.,
+  LCOEFKTKE=.T.,
+  LCOEFK_FLX=.T.,
+  LCOEFK_PTTE=.T.,
+  LCOEFK_TOMS=.T.,
+  LO3ABC=.T.,
+  LPTKE=.T.,
+  LRRGUST=.T.,
+  LVGSN=.T.,
+/
+&NAMPHY0
+  ALMAV=200.,
+  BEDIFV=0.1,
+  C3TKEFREE=1.183,
+  C_EPSILON=0.871,
+  ETKE_BETA_EPS=0.05,
+  ETKE_LAM0=0.29,
+  ETKE_OLAM=0.29,
+  GCISMIN=5.5E-04,
+  NUPTKE=0.5265,
+  VZIUSTAR0=12.,
+/
+&NAMPHY1
+  ACLS_HS=1.,
+  LCLS_HS=.T.,
+/
+&NAMPHY2
+/
+&NAMPHY3
+/
+&NAMPHYDS
+/
+&NAMPONG
+/
+&NAMPPC
+/
+&NAMPPVI
+/
+&NAMPRE
+/
+&NAMRAD15
+/
+&NAMRADCMEM
+/
+&NAMRCF
+/
+&NAMRCOEF
+/
+&NAMRES
+/
+&NAMRGRI
+/
+&NAMRINC
+/
+&NAMRIP
+/
+&NAMRIP0
+/
+&NAMRLX
+/
+&NAMSATS
+!  LCO2_DIAG_AIRS=.F.,
+!  LCO2_DIAG_IASI=.F.,
+!  MEMIS_SW=1,
+!  YLSATID_TABLE(1)%IBUFRID=74, ! Meteosat bufrsatid=74  (abuc instead of modification of code)
+!  YLSATID_TABLE(1)%IRTSERIES=3,
+!  YLSATID_TABLE(1)%IRTID=11,
+/
+&NAMSCC
+/
+&NAMSCEN
+/
+&NAMSCM
+/
+&NAMSEKF
+/
+&NAMSENS
+/
+&NAMSIMPHL
+/
+&NAMSPNG
+/
+&NAMSPSDT
+/
+&NAMSTA
+/
+&NAMSTOPH
+/
+&NAMSWE
+/
+&NAMTESTVAR
+/
+&NAMTHLIM
+/
+&NAMTOPH
+/
+&NAMTRAJP
+/
+&NAMTRANS
+/
+&NAMTRANS0
+RDISTR_E=1
+/
+&NAMTS
+/
+&NAMVAR
+  LANOBS=.T.,                ! Compute and Store in ODB the analysis sensitivity to observations
+  LBGOBS=.F.,                ! Compute background errors for observed quantities (  TRUE --> Bug RTTVI PROBLEM ? ) 
+  LCONGRAD=.F.,              ! Call Conjugate gradient algorithm to minimise the cost function
+  LTRAJGP=.T.,               ! Storing data in spectral or grid point (TRUE in both spaces)
+  LJC=.F.,
+  LTEST=.F.,                 ! Check the cost function at every iteration
+  L_CHECK_CONVERGENCE=.F.,   ! Check the convergence  (abort if it fails)
+  NGRATS(0)=1,               ! Write-out events for the gradient algorithme
+  NGRATS(1)=1,               ! //
+  NGRATS(2)=1,               ! //
+  NITER=50,                  ! Number of calls to the minimizer algorithm
+  NSIMU=51,                  ! Number of calls to adjoint model  (must be > NITER ,the minimizer is caled after the construction of adjoint model) 
+  NUPTRA=0,                  ! Number of updates of trajectory  (NUPTRA=0 in 3DVAR , NUPTRA => 0 4DVAR )
+  RCVGE=1.E-3,               ! Convergence criterion (deflaut 1.E-3)
+/
+&NAMVARBC
+/
+&NAMVARBC_AIREP
+  LBC_ACARS=.F.,
+  LBC_AIRCT=.F.,
+  LBC_AIREP=.F.,
+  LBC_AMDAR=.F.,
+  LBC_CODAR=.F.,
+  LBC_COLBA=.F.,
+/
+&NAMVARBC_ALLSKY
+/
+&NAMVARBC_GBRAD
+/
+&NAMVARBC_RAD
+/
+&NAMVARBC_RSONDE
+/
+&NAMVARBC_SFCOBS
+/
+&NAMVARBC_TCWV
+/
+&NAMVARBC_TO3
+/
+&NAMVAREPS
+/
+&NAMVDF
+/
+&NAMVDOZ
+/
+&NAMVOLCANO
+/
+&NAMVRTL
+  L131TL=.T.,    ! e131 to be run with the tangent model
+  LOBSTL=.T.,    ! We use the tangent linear of the observation operators
+/
+&NAMVV0
+/
+&NAMVV1
+/
+&NAMVWRK
+/
+&NAMWAVELETJB
+/
+&NAMXFU
+/
+&NAM_CANAPE
+/
+&NAM_DISTRIBUTED_VECTORS
+/
+&NAPHLC
+/
+&NEMCT0
+/
+&NEMDIM
+/
+&NEMDYN
+/
+&NEMELBC0A
+  NBICOP=2,
+  NBICOT=2,
+  NBICOU=2,
+/
+&NEMELBC0B
+/
+&NEMFPEZO
+/
+&NEMGEO
+/
+&NEMJK
+/
+&NEMVAR
+  ENIL1=300000.,
+  ENIL2=500000.,
+  ENILHBAL1=600000.,
+  ENILHBAL2=1000000.,
+  EVAREPSILON=1.E-2,
+  EXPVAR=1.0,
+  LCORCOSU_AUTO=.F.,
+  LCORCOSU_HBAL=.F.,
+  LCORCOSU_STAT=.F.,
+  LEVARGP=.F.,
+  NBZONVAR_EW=20,
+/
+&NEMWAVELET
+/
+&NAMSTEPS
+/

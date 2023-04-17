@@ -1,0 +1,127 @@
+#!/bin/bash
+@manual
+This task prepares observations for use by the data assimilation tasks.
+If this task fails:
+  1. check whether all ODB tasks were completed
+  2. check output to see what may be the cause of crash. Try to re-run.
+  3. If there is no way to get this task to run in time, data assimialation can be turned off by running the task surface/skip_surface_assimilation.
+
+  Note that this 3rd option should be avoided if possible!
+
+
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <settings_odb.h>
+@include <@ENV_ALADIN@>
+
+ulimit -s unlimited
+
+WDIR=${d_BATOR}
+cd $WDIR
+
+# Retrieve necessary programs 
+#----------------------------
+ 
+#{d_BIN}1=/home/idehmous/pack/43t2_bf.11.modes_INTEL1700c.x/bin
+#{d_BIN}=/home/idehmous/pack/43t2_bf11_bator#3/bin
+ln -sf ${d_BIN}/odbtools.x shuffle
+ln -sf ${d_BIN}/ioassign ioassign
+
+# SCRIPTS FOR IOASSIGN
+#---------------------------------
+# create_ioassign MUST be in the PATH (called from merge_ioassign)
+export PATH=.:$PATH
+ln -sf ${MERGE_IOASSIGN}  merge_ioassign
+ln -sf ${CREATE_IOASSIGN} create_ioassign
+#OBSLIST=(${OBSTYPES//,/ })
+
+# MERGE SUB-BASES 
+#------------------------------------
+out_BASE=ECMA     #"VERY IMPORTANT"
+rm -rf ${out_BASE}
+#------------------------------------
+export SWAPP_ODB_IOASSIGN=$WDIR/ioassign
+export ODB_SRCPATH_ECMA=$WDIR/${out_BASE}
+export ODB_DATAPATH_ECMA=$WDIR/${out_BASE} 
+export ODB_CMA=ECMA
+
+# SETTINGS FOR ODB 
+#---------------------------------
+export EC_PROFILE_HEAP=0
+export TO_ODB_ECMWF=0
+export TO_ODB_SWAPOUT=0
+export ODB_DEBUG=0
+export ODB_CTX_DEBUG=0
+export ODB_REPRODUCIBLE_SEQNO=2
+export ODB_STATIC_LINKING=1
+export ODB_IO_METHOD=1
+export ODB_ANALYSIS_DATE=${YYYY}${MM}${DD}
+export ODB_ANALYSIS_TIME=${RR}0000
+export TIME_INIT_YYYYMMDD=${YYYY}${MM}${DD}
+export TIME_INIT_HHMMSS=${RR}0000
+
+export EC_PROFILE_HEAP=0
+
+# -CHECK THAT THE ODB(S) ARE CORRECTELY WRITTEN 
+# -LOOK FOR "body"  TABLE IN THE FIRST POOL .
+# -UPDATE THE ODB LIST FOR MERGE  ! 
+# IT COULD HAPPEN THAT A DIRECTORY EXISTS FOR A GIVEN 
+# SUB-BASE BUT IS EMPTY ( WITHOUT POOL DIRECTORY AND "body" TABLE)
+#OBSTYPE=(synop  amdar temp )
+cd $WDIR
+merge_list=""
+for obstype  in ${OBSTYPES}; do
+  if [ -f  ECMA.${obstype}/1/body  ] ; then
+    # create merged ioassign file
+    merge_list=${merge_list}" -t "${obstype}
+  else
+    echo "Data are not written for the base $obstype"
+    rm -rf ECMA.${obstype}
+    continue
+  fi
+done
+
+if [[ ! "$merge_list" ]] ; then
+  echo There are no observations available at all!
+  echo Can not run merge_ioassign.
+  echo Can not run data assimilation.
+  echo NO > NO_DATA
+else
+  ./merge_ioassign -d $WDIR $merge_list
+  ls -al ECMA.synop/1
+  unset merge_list
+
+
+export SWAPP_ODB_IOASSIGN=${WDIR}/ioassign
+export ODB_SRCPATH_ECMA=${WDIR}/${out_BASE}
+export ODB_DATAPATH_ECMA=${WDIR}/${out_BASE}
+
+
+  export IOASSIGN=$WDIR/${out_BASE}/IOASSIGN 
+  export ODB_ECMA_CREATE_POOLMASK=1 
+  export ODB_ECMA_POOLMASK_FILE=$WDIR/${out_BASE}/ECMA.poolmask 
+  export TIME_INIT_YYYYMMDD=${YYYY}${MM}${DD}
+  export TIME_INIT_HHMMSS=${RR}0000
+
+# NUMBER OF POOLS
+  na=`head -5 ${out_BASE}/ECMA.dd | tail -1`
+  nb=1
+
+# RUN ODBTOOLS (SHUFFLE)
+# FIXME: this is MPI, but always on 1 thread
+#        so can go wrong if MPIRUN fixes to -n $NPROC ?
+#        Best to define "MPIRUN1" separately?
+  $MPIRUN ./shuffle -i${out_BASE} -o${out_BASE} -b${nb} -a${na} >out.log.merge 2>&1
+
+# SAVE DATA BASE
+  tar cvf ECMA_merged.tar ${out_BASE} ECMA.*
+  [[ -e ${d_ODB} ]] || mkdir -p $d_ODB
+  # "surface" or "upper" !!!
+  label=${ASSIM_LABEL}
+  rm -rf $d_ODB/ECMA_${label}*
+  mv -f  ECMA_merged.tar ${d_ODB}/ECMA_${label}_${RUNDATE}.tar
+fi
+
+@include <tail.h>

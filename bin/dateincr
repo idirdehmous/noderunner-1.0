@@ -1,0 +1,77 @@
+#! /usr/bin/env python3
+import datetime as dt
+import sys
+
+dformats = { "d":"%Y%m%d", "h":"%Y%m%d%H", "m":"%Y%m%d%H%M", "s":"%Y%m%d%H%M%S" }
+dlengths = { "d":8, "h":10, "m":12, "s":14 }
+dunits   = { 8:"d", 10:"h", 12:"m", 14:"s" }
+
+def usage ():
+  print("dateincr [-d|h|m|s] YYYYMMDD[[[hh]mm]ss] [+|-]inc")
+
+def merror (estring) :
+  print(estring)
+  usage()
+  quit()
+
+
+def inunit (inustring) :
+  nch = len(inustring)
+  if nch != 2  or inustring[0] != '-' :
+    merror("incorrect format string: " + inustring)
+  if not inustring[1] in {"d", "h", "m", "s"} :
+    print("Bad format: " + inustring)
+    merror("format must be -[dhms] (default: -d)")
+  return inustring[1]
+
+def indate (instring, unit) :
+  ihour = iminute = isecond = 0
+  nch = len(instring)
+  if nch != dlengths[unit] :
+    merror("Bad date string length: " + instring)
+  try :
+    iyear = int(instring[0:4])
+    imonth = int(instring[4:6])
+    iday = int(instring[6:8])
+    if (nch >= 10) : ihour = int(instring[8:10])
+    if (nch >= 12) : iminute = int(instring[10:12])
+    if (nch == 14) : isecond = int(instring[12:14])
+    odate =  dt.datetime(iyear, imonth, iday, ihour, iminute, isecond)
+  except :
+    merror("Bad date string: " + instring)
+  return odate
+
+def increment (incstring, unit) :
+  try :
+    inc = int(incstring)
+  except :
+    merror("bad increment string: " + incstring)
+
+  if unit=="d" :
+    if inc > 10000 :
+      merror("Excsessive day increment: " + incstring)
+    return dt.timedelta(days=inc)
+  if unit=="h" :
+    return dt.timedelta(hours=inc)
+  if unit=="m" :
+    return dt.timedelta(minutes=inc)
+  if unit=="s" :
+    return dt.timedelta(seconds=inc)
+  
+nargv = len(sys.argv)
+if nargv < 3  or nargv > 4 :
+  usage()
+  quit()
+if nargv == 3 :
+  # unit="d" # ECMWF default
+  unit = dunits[len(sys.argv[nargv-2])]
+else :
+  unit = inunit(sys.argv[1])
+
+idate = indate(sys.argv[nargv-2], unit)
+iinc = increment(sys.argv[nargv-1], unit)
+
+odate = idate + iinc
+print(odate.strftime(dformats[unit]))
+
+

@@ -1,0 +1,120 @@
+#!/bin/bash
+@manual
+blabla
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+@include <settings_odb.h>
+
+
+# WORKING DIRECTORY 
+mkdir -p  $d_SCREENING
+cd $d_SCREENING
+rm -rf *
+
+# BINARIES 
+ln -sf  ${d_BIN}/MASTERODB MASTERODB
+ln -sf  ${d_BIN}/ioassign ioassign
+
+# IOASSIGN SCRIPTS 
+# create_ioassign MUST be in the PATH (called from merge_ioassign)
+export PATH=.:$PATH
+ln -sf ${CREATE_IOASSIGN}  create_ioassign
+ln -sf ${MERGE_IOASSIGN}   merge_ioassign
+
+export MPL_MBX_SIZE=2048000000
+
+# CONSTANT FILES 
+cp  -f ${d_ETC}/amv_p_and_tracking_error        amv_p_and_tracking_error
+cp  -f ${d_ETC}/amv_bias_info                   amv_bias_info
+cp  -f ${DATADIR_RUNTIME}/MCICA .
+cp  -f ${DATADIR_RUNTIME}/RADSRTM .
+
+
+# ERRGRIB ( background's  standard deviations file )
+cp -f ${d_ETC}/errgrib .
+
+# AROME GUESS 
+# WITH ADDED ISBA SURFACE FIELDS
+# FIXME: which first guess? addfields may not even be necessary?
+#cp ${d_ADDFIELDS}/first_guess_isba ICMSHSCREINIT
+cp ${d_GUESS}/first_guess_canari ICMSHSCREINIT
+# NAMELIST
+NAMELIST="$( for nn in $NAMELIST_SCREENING ; do echo ${d_NAMELIST}/$nn ; done )"
+
+cat $NAMELIST | sed \
+  -e "s/{nproc}/$NPROC/" \
+  -e "s/NPROC=.*/NPROC=$NPROC/" \
+  -e "s/NPRGPNS=.*/NPRGPNS=$NPRGPNS/" \
+  -e "s/NPRGPEW=.*/NPRGPEW=$NPRGPEW/" \
+  -e "s/NPRTRV=.*/NPRTRV=$NPRTRV/" \
+  -e "s/NPRTRW=.*/NPRTRW=$NPRTRW/" \
+  -e "s/NSTRIN=.*/NSTRIN=$NPROC/" \
+  -e "s/NSTROUT=.*/NSTROUT=$NPROC/" \
+> fort.4
+
+set -x
+# MAKE COPY OF ODB 
+cp -f  $d_ODB/ECMA_upper_${RUNDATE}.tar    ECMA_merged.tar 
+
+mkdir var_db
+cd var_db
+tar xvf ../ECMA_merged.tar
+
+cd ${d_SCREENING}
+# ODB DATA ENVIRONNEMENT 
+export ODB_SRCPATH_ECMA=${d_SCREENING}/var_db/ECMA
+export ODB_DATAPATH_ECMA=${d_SCREENING}/var_db/ECMA
+export IOASSIGN=${d_SCREENING}/var_db/IOASSIGN
+export ODB_CMA=ECMA
+# (NBPOOL for CCMA can differ NUMCPU vs NUMCPU_CCMA)
+export ODB_CCMA_CREATE_DIRECT=1
+export ODB_CCMA_LEFT_MARGIN=-180
+export ODB_CCMA_RIGHT_MARGIN=180
+export ODB_CCMA_WTMETHOD=107
+export NPES_CCMA=$NPROC
+export SWAPP_ODB_IOASSIGN=ioassign
+export ODB_SRCPATH_CCMA=${d_SCREENING}/var_db/CCMA
+export ODB_DATAPATH_CCMA=${d_SCREENING}/var_db/CCMA
+export ODB_CCMA_CREATE_POOLMASK=1
+export ODB_CCMA_POOLMASK_FILE=${d_SCREENING}/var_db/CCMA/CCMA.poolmask
+
+cp  -f ${d_SCREENING}/var_db/ECMA/IOASSIGN    ${d_SCREENING}/var_db/IOASSIGN
+
+# CREATION OF IOASSIGN FILE IN THE NEW ODB DIRECTORY 
+rm -rf ${d_SCREENING}/var_db/CCMA 
+mkdir  ${d_SCREENING}/var_db/CCMA
+
+./create_ioassign -lCCMA -n$NPES_CCMA
+
+cat IOASSIGN >> ${d_SCREENING}/var_db/ECMA/IOASSIGN
+cp -f  ${d_SCREENING}/var_db/ECMA/IOASSIGN ${d_SCREENING}/var_db/CCMA/IOASSIGN
+cp -f  ${d_SCREENING}/var_db/ECMA/IOASSIGN ${d_SCREENING}/var_db/IOASSIGN
+
+# RUN 
+# NOTE: an error in screening run may not trigger an abort!
+$MPIRUN ./MASTERODB  >out.log 2>err.log || {
+    echo "An error occured!"
+    exit 1
+  }
+
+# FIXME: how can I check whether the screening was OK?
+
+# copy resulting CCMA to $d_ODB
+cd var_db
+db_tarfile=CCMA_${RUNDATE}.tar
+tar cvf ${db_tarfile} CCMA
+cp -f ${db_tarfile} ${d_ODB}/${db_tarfile}
+# ARCHIVE UPDATED ODB  ( OBSMON USE )
+# we moved this to separate task
+#if  [[ @ODB_ARCH:yes@ ==  "yes" ]] ; then
+#  tar -cvf  CCMA_screen_${RUNDATE}.tar  CCMA  CCMA.*
+#  ssh  -l ${ARCH_USER} ${ARCH_HOST} "mkdir -p  ${ODB_PATH}/ODB/CCMA/${RUNDATE}"
+#  scp  CCMA_screen_${RUNDATE}.tar  ${ARCH_USER}@@${ARCH_HOST}:${ODB_PATH}/ODB/CCMA/${RUNDATE}
+#fi
+
+@include <tail.h>
+

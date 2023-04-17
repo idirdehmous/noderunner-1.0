@@ -1,0 +1,17 @@
+@include <head.h>
+@manual
+This maintenance script switches the suite from "delayed" mode back to "realtime".
+This job should (only) be triggered by turning off the "delay" switch.
+
+@end
+
+ecflow_client --alter=change variable DELAY "no" /@SUITE@
+##SUBMIT_OPT is RMI-specific
+#if [[ @MODE@ == "oper" ]] ; then
+#  ecflow_client --alter=change variable SUBMIT_OPT "-r" /@SUITE@
+#fi
+
+ecflow_client --requeue  /@SUITE@/@FAMILY@/detect_delay
+
+@include <tail.h>
+

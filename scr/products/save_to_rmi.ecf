@@ -1,0 +1,39 @@
+#!/bin/bash
+@manual
+This task selects some fields from the basic fullpos to create the smaller files that are archived.
+Transfer to RMI is via ectrans.
+@end
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+
+# make a tar file of model output files (PF${CNMEXP}arch${RR}+00${hh})
+# and save to some archive directory
+# in this case, the DOMAIN is always the model domain
+
+set -x
+AROOT=@ARCH_ROOT:$CNMEXP@
+ATAG=@ARCH_TAG:"atos"@
+# FIXME: how about other domains? ICMSH... ?
+pp_name=$DOMAIN
+
+if [[ $ATAG = "" ]] ; then
+  tarfile=${AROOT}_${RUNDATE}.tar
+else
+  tarfile=${AROOT}_${RUNDATE}_${ATAG}.tar
+fi
+
+cd ${d_POST}
+tar -cf $tarfile PF${CNMEXP}${pp_name}*
+
+set +x
+module load ecaccess
+set -x
+ectrans -gateway nogrod.oma.be -remote ad_kili@@genericSftp -put \
+          -target ../../mnt/HDS_ALD_TEAM/ALD_TEAM/dalex/testruns/atos/$tarfile   \
+          -overwrite \
+          -source $tarfile
+
+# -onfailure : send mail on failure of ectrans
+
+@include <tail.h>

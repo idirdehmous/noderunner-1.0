@@ -1,0 +1,13 @@
+ &NAMDYNCORE 
+ /
+ &NAMSCEN 
+ /
+ &NADIRS
+ INBTYPEBUFR=1000,
+ /
+ &NAMSATFREQ
+ /
+ &BUFR  
+LPACOME = .TRUE.,                 !  Meteo France radome selection
+ORIGINE(1:8) = 80,81,89,180,181,202,212,242 ,   !  Origine centers
+/

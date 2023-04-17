@@ -1,0 +1,12 @@
+@include <head.h>
+@manual
+This tasks changes the default status of the current cycle. It has finished, so it's set to defstatus complete. That way, if someone would re-queue the complete suite, this job will not run again.
+@end
+
+# we set this forecast time to "defstatus = complete"
+# that way it will not run again if the whole suite is accidently re-queued
+ecflow_client --alter=change defstatus complete /@SUITE@/cycle/@THIS_RUN@
+
+
+@include <tail.h>
+

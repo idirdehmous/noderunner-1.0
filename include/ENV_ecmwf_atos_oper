@@ -1,0 +1,123 @@
+# make output accessible to others
+umask 0022
+set +x
+# Memory settings
+ulimit -s unlimited
+ulimit -c unlimited
+
+# Load modules (cfr. compilation with gmkpack, Ryad's scripts)
+# NOTE: if you "purge", remember to load ecflow again!
+module purge
+module load prgenv/intel
+module load intel/2021.4.0
+module load intel-mkl/19.0.5 # NOTE: yes. v19, not 21
+module load hpcx-openmpi/2.9.0
+# CORRUPTED MODULE as of 20221206?
+#module load gcc/8.4.1
+module load gcc/8.5.0
+module load ecflow/@ECF_VERSION@
+#
+module load ecmwf-toolbox/2022.03.0.1
+module load hdf5/1.10.6
+module load netcdf4/4.7.4
+
+export LD_LIBRARY_PATH=${ECCODES_DIR}/lib:${NETCDF4_DIR}/lib:${LD_LIBRARY_PATH}
+#module load fftw/3.3.9
+## Should not be necessary (only static libs):
+#module use /home/cv6/modules
+#module load gmkpack/6.9.2
+#module load auxlibs/3.7_ec
+#
+#
+JOB_INITDIR=$SLURM_SUBMIT_DIR
+JOB_NAME=$SLURM_JOB_NAME
+JOB_ID=$SLURM_JOB_ID
+
+echo JOB_INITDIR=$JOB_INITDIR
+echo JOB_NAME=$JOB_NAME
+echo JOB_ID=$JOB_ID
+
+# Number of nodes/mpi-tasks/omp-threads:
+# -------------------------------------
+NNODES=$SLURM_JOB_NUM_NODES
+# Total number of MPI tasks:
+MPI_TASKS=$SLURM_NTASKS
+# Number of MPI tasks per node:
+MPITASKS_PER_NODE=$((MPI_TASKS/NNODES))
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+
+echo NNODES=$NNODES
+echo MPITASKS_PER_NODE=$MPITASKS_PER_NODE
+echo MPI_TASKS=$MPI_TASKS
+echo OMP_NUM_THREADS=$OMP_NUM_THREADS
+
+# Specific environment variables :
+# ------------------------------
+# Open-MP business :
+# OMP_PLACES looks important for the binding by srun :
+export OMP_PLACES=threads
+export OMP_STACKSIZE=4G
+export KMP_STACKSIZE=4G
+export KMP_MONITOR_STACKSIZE=4G
+# Bitwise reproductibility with MKL :
+export MKL_CBWR="AUTO,STRICT"
+export MKL_NUM_THREADS=1
+export MKL_DEBUG_CPU_TYPE=5
+# ECMWF prefers "release" than "release_mt" with Intel MPI library :
+export I_MPI_LIBRARY_KIND=release
+
+# Software default environment variables :
+# --------------------------------------
+export DR_HOOK=1
+export DR_HOOK_IGNORE_SIGNALS=-1
+export DR_HOOK_SILENT=1
+export DR_HOOK_SHOW_PROCESS_OPTIONS=0
+export MPL_MBX_SIZE=2048000000
+export EC_PROFILE_HEAP=0
+export EC_PROFILE_MEM=0
+export EC_MPI_ATEXIT=0
+export EC_MEMINFO=0
+
+## Suitable BUFR tables for the "harominie" version of BATOR:
+export BUFR_TABLES=/home/cv6/software/auxlibs/3.7_ec/lib/bufrtables/
+
+################################################################
+##
+# we assume MPI libs are already OK (module loaded)
+# we don't use MPIAUTO
+MPIRUN="time srun"
+export MP_SINGLE_THREAD=yes
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
+export MPI_TASKS=${SLURM_NTASKS}
+
+
+# AD: fix UCX...
+#export UCX_LOG_LEVEL=info
+#
+echo "****************************************  UTX "
+echo "UCX_TLS = $UCX_TLS"
+# this seems to fix crashes at >4 nodes (don't explicitly set rc_x)
+# from a discussion : "It's expected to fail with UCX_TLS=self,sm,rc_x, on large scale."
+unset UCX_TLS
+
+#NPROC_IO=$MPITASKS_PER_NODE
+#NPROC=$((MPI_TASKS-NPROC_IO))
+
+
+# model config (128 cores/node)
+echo "NNODES: $SLURM_NNODES"
+echo "NPROCS: $SLURM_NPROCS"
+echo "NTASKS: $SLURM_NTASKS"
+
+# if this is a forecast task and io_server is used
+# we reduce the number of available cores
+if [[ $IO_SERVER == yes ]] ; then
+  echo "NPROC_IO=$NPROC_IO"
+  export NPROC=$(( ${SLURM_NPROCS} - $NPROC_IO ))
+else
+  export NPROC=${SLURM_NPROCS}
+fi
+echo "NPROC: $NPROC"
+
+set -x
+

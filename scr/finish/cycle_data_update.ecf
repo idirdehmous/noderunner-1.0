@@ -1,0 +1,59 @@
+@include <@HPC_HEADER@>
+@include <head.h>
+@manual
+Cleanup old "first_guess" files from SCRATCH.
+This task also makes sure that the "backup" scratch directory is syncronised.
+So the next cycle can start from a different scratch and still find the first guess.
+
+If this fails, try rerunning. If it fails again, check  whether:
+- error in the cleaning (improbable): try re-running. Check whether scratch directory is OK.
+Setting it to complete would at least not cause much trouble, but the cycle data may not be sync'ed to secondary scratch, so switching may cause problems..
+- error in sync to secondary scratch: this is important for keeping the secondary scratch ready when needed. Id ==f this task fails, check whether the scratch directory is available.
+
+Setting this task to complete will not harm the current cycle, but may cause problems if the next cycle is run on the secondary scratch.
+
+NOTE: this task is run "InLimit(max_sync)". This is to avoid that 2 tasks from different cycles could run at the same time.
+@end
+@include <settings.h>
+
+set -x
+umask 0022
+
+# remove old cycle subdirectories
+# either by looking at creation date or by going backwards explicitly
+# We don't delete the last few fg's, so a re-run is simple
+
+CYCLE_BUFLEN=@CYCLE_BUFLEN:48@
+
+# simple strategy: at 00h, delete all subdirectories from day-2 (and older)
+if [[ $RR = 00 ]] ; then
+  odate=`dateincr -h $RUNDATE -$CYCLE_BUFLEN | cut -c 1-8`
+  oyyyy=`echo $odate | cut -c 1-4`
+  omm=`echo $odate | cut -c 5-6`
+  odd=`echo $odate | cut -c 7-8`
+  rm -rf ${d_CYCLE}/$oyyyy/$omm/$odd
+
+#  find $d_CYCLE/$oyyyy/$omm -maxdepth 0 -name [0-9]* | 
+  # for safety, we go a bit further back as well, 
+  # but this should not be necessary
+  # FIXME: should be done with find ... ?
+  for i in {1..10..1} ; do
+    odate=`dateincr $odate -1`
+    oyyyy=`echo $odate | cut -c 1-4`
+    omm=`echo $odate | cut -c 5-6`
+    odd=`echo $odate | cut -c 7-8`
+    rm -rf ${d_CYCLE}/$oyyyy/$omm/$odd
+    if [[ $MM != $omm  && $DD -gt 1 ]] ; then
+      rm -rf ${d_CYCLE}/$oyyyy/$omm
+      [ $YYYY != $oyyyy ] && rm -rf ${d_CYCLE}/$oyyyy
+    fi
+  done
+fi
+
+#if [[ $SYNC_SCRATCH == "yes" ]] ; then
+#  [[ -d $BASEDIR2/cycle ]] || mkdir -p $BASEDIR2/cycle
+#  rsync -a --delete $BASEDIR/cycle/ $BASEDIR2/cycle
+#fi
+
+@include <tail.h>
+

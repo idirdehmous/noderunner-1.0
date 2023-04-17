@@ -1,0 +1,32 @@
+! $Id: as_beSoun,v 1.6 2011/05/04 07:06:10 ald_team Exp $
+! Used to draw pseudo-soundings with Magics - small domain
+&NMGLO
+  NPLEV=46,
+  NDLON=192,
+  NDGL=192,
+&END
+&NMCOOR
+  NBCOOR=23,
+  CSTA(1)='Hemsby','de Bilt','Oostende','Uccle','St-Hubert','Kleine Brogel',
+  COOR(1,1)=1.41,    5.11,     2.52,      4.21,   5.24,       5.28,
+  COOR(1,2)=52.41,  52.06,    51.12,     50.48,  50.02,      51.10,
+  CSTA(7)='St-Quentin','Paris(Trappes)','Nancy/Essey','Essen',
+  COOR(7,1)=3.12,        1.58,            6.13,        6.55,
+  COOR(7,2)=49.49,       48.50,          48.41,       51.26,
+  CSTA(11)='North Sea','Bierset','Koksijde','Deurne','Chievres',
+  COOR(11,1)= 3.00,     5.27,     2.39,    4.28,    3.50,
+  COOR(11,2)=52.30,    50.39,    51.05,   51.12,   50.34,
+  CSTA(16)='Beauvechain','Florennes','Elsenborn','Semmerzake',
+  COOR(16,1)=4.46,        4.39,       6.11,       3.40,
+  COOR(16,2)=50.45,      50.14,      50.28,      50.56,
+  CSTA(20)= 'Buzenol', 'Beitem','Westinder','Bertrix',
+  COOR(20,1)= 5.35,     3.07,     2.45,     5.15,
+  COOR(20,2)=49.37,    50.54,    51.38,     49.51,
+  LDBG=.FALSE.,
+  IUNIT=30,
+  CNA_SUR(1)='[MSL]PRESSURE\*.01','PRESSION\*.01',
+  CNA_SUR(3)='PREC.EAU.GEC\=0.0','PREC.EAU.CON\=0.0',
+             'PREC.NEI.GEC\=0.0','PREC.NEI.CON\=0.0',
+  CNA_CLS(1)='TEMPERATURE\-273.151','HUMI.RELATIVE\>TD',
+             'VENT.ZONAL','VENT.MERIDIEN\>FD',
+/

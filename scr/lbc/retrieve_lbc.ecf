@@ -1,0 +1,219 @@
+#!/bin/bash 
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+
+
+
+# CREATE WDIR 
+WDIR=${d_LBC}
+if [ -d ${WDIR} ]; then  mkdir -p ${WDIR} ; fi   
+LOG=${WDIR}/log
+OUT=${WDIR}/input
+
+# CLEAN WORKDIR
+#rm -rf ${WDIR}/*
+
+# PREPARE SOME LOG AND OUT DIR 
+mkdir -p  ${LOG}  ; mkdir -p ${OUT}
+
+# SET REQUEST  DATE/TIME
+yy=$( echo ${RUNDATE} |  cut -c1-4  )
+mm=$( echo ${RUNDATE} |  cut -c5-6  )
+dd=$( echo ${RUNDATE} |  cut -c7-8  )
+rr=$( echo ${RUNDATE} |  cut -c9-10 )
+
+
+
+# SET 1ST AND LAST STEP
+START=0  ; END=${HOURRANGE}
+
+LBC_INC=1
+CNMEXP=E903
+STEPS=0/to/3/by/1
+
+levs=137
+gp_fields=133/203/75/76/246/247/248
+sp_fields=152/138/155/130/135
+
+# SURFACE
+sfc_fields=198.128/235.128/10.228/11.228/12.228/13.228/14.228/238.128/34.128/35.128/36.128/37.128/38.128/148.128/8.228/9.228/129.128/31.128/7.228/26.128/139.128/170.128/183.128/236.128/39.128/40.128/41.128/42.128/141.128/32.128/33.128/172.128/66.128/67.128
+
+# SURFACE FIELD AT 00
+sfc_00=74/163/43/160/161/162/27/28/16/17/18/30/15/29
+
+# CLIM
+sfc_ct=234/173/174
+
+# OROGRAPHY - ( SPECTRAL )
+sp_lev1_fields=129.128
+
+# Some (surface) fields are only in the analysis, not the forecast
+# Should we also retrieve Model Levels from analysis? Or step=0?
+
+
+# FETCHING START TIME
+Start=`date +"%Y-%m-%d %H:%M:%H"`
+echo "START FETCHING FORECAST FILES FROM MARS :" ${Start} >${LOG}/stats.log
+
+function CheckFile () {
+FILE=$1
+if [ -f $FILE ] ; then
+   size=$((  $( stat -c %s $FILE ) / 1024 ))
+   if [ ${size} != 0 ] ; then  echo "$FILE exists.  Size = ${size} KB" >>${LOG}/stats.log ; else  echo "${FILE}  is empty" >>${LOG}/stats.log ; fi
+else
+   echo "$FILE not in archive" >> ${LOG}/stats.log
+   exit 123
+fi
+}
+
+# THE REQUEST FUNCTION 
+function MarsRequest () {
+
+# GET ARGS  
+STEPS=$1 ; YYYY=$2 ; MM=$3 ; DD=$4 ; RR=$5 ; NREQ=$6
+
+DATE=${YYYY}-${MM}-${DD}
+LEVLIST=1/to/${levs}
+
+# CREATE REQUEST DIRECTORY 
+REQDIR=${WDIR}/${NREQ}
+mkdir -p  ${REQDIR}
+
+# REQUEST FILE 
+REQFILE=${REQDIR}/mars_request_${NREQ}.req
+
+# ANALYSIS PARAMS
+ANPARAM=74/163/43/234/173/174/160/161/162/27/28/16/17/18/30/15/29
+
+# OROG PARAMS
+OROPARAM=129.128
+
+# WHICH STREAM ? 
+case $rr in
+  00|12) stream=oper ;;
+  06|18) stream=scda ;;
+esac
+
+# THE REQUEST BODY 
+echo retrieve, >  ${REQFILE}
+echo stream=${stream},class=od,type=fc,expver=1,date=${DATE},\
+     time=${RR},step=${STEPS},levtype=ml,levelist=${LEVLIST},\
+     param=${gp_fields},target="'fc_atm_pdg_[step]'" >> ${REQFILE}
+
+echo retrieve,                                        >> ${REQFILE}
+echo param=${sp_fields},target="'fc_atm_spe_[step]'"  >> ${REQFILE}
+
+echo retrieve,                                                                   >> ${REQFILE}
+echo levtype=sfc, step=${STEPS},param=${sfc_fields},target="'fc_sol_pdg_[step]'" >> ${REQFILE}
+
+# only if 00 is in the steps list:
+# (you need it at every lead time, but only retrieve it once)
+# (we assume that step 00 is always retrieved)
+
+step1=`echo $STEPS | cut -d"/" -f1`
+if (( $step1 == 0 )); then
+echo retrieve,                                                           >> ${REQFILE}
+echo type=an, step=00,  param=${ANPARAM} , target="'ana_sol_pdg_0000'"   >> ${REQFILE}
+
+echo retrieve,                                                                         >> ${REQFILE}
+echo levtype=ml, levelist=1, param=${OROPARAM}, grid=off,  target="'ana_oro_spe_0000'" >> ${REQFILE}
+fi
+
+cd   ${REQDIR}
+mars ${REQFILE}   1>  ${LOG}/mars_${DATE}_${NREQ}.log 2>&1   &
+}
+
+
+
+# NO RETRIEVAL AT INTERMEDIATE CYCLES 
+
+LBC_LAG=$(( 10#$RR % 6  ))
+
+if [ ${LBC_LAG} != 0 ] ; then 
+	echo "No retrieval LBC 's available from the previous cycle"
+	sync                      # flush all file I/O before signalling completion!
+        wait                      # wait for background process to stop
+        set +x
+        ecflow_client --complete  # Notify ecFlow of a normal end
+        trap 0                    # Remove all traps
+        exit 0                    # End the shell
+
+
+else   	
+# LOOP OVER STEPS  ( FROM 0 TO 60 )
+# Number of steps per MARS request:
+hstep=3
+
+for i in $(seq $START $hstep $END ) ; do
+   bgn=$i ; end=$(( $bgn + $hstep - 1 ))
+   if (( $end > $END )) ; then end=$END ; fi
+   req=$(printf "%02d" ${bgn})_$(printf "%02d" ${end})
+   MarsRequest ${bgn}/"to"/${end}/by/${LBC_INC}   ${yy} ${mm} ${dd} ${rr}   ${req}
+done
+
+# WAIT FOR ALL THE PROCESSES TO FINISH
+wait
+
+# MOVE FROM SUBDIRS  TO  ./out
+for i in $(seq $START $hstep $END ) ; do
+   bgn=$i ; end=$(( $bgn + $hstep - 1 ))
+   if (( $end > $END )) ; then end=$END ; fi
+   req=$(printf "%02d" ${bgn})_$(printf "%02d" ${end})
+
+    echo "Moving files from  ${req}  to  ${OUT}"   >> ${LOG}/stats.log
+    mv -f $WDIR/${req}/fc_*    $OUT
+    if (( $i == 0 )) ; then
+      mv -f $WDIR/${req}/ana_*   $OUT 
+    fi
+done
+
+End=`date +"%Y-%m-%d %H:%M:%H"`
+echo "END FETCHING FORECAST FILES FROM MARS :" ${End} >> ${LOG}/stats.log
+
+
+
+
+
+# CHECK FILES AND COMBINE GP ,SP AND SFC 
+ii=0
+for i in $(seq -f%01g ${START} ${LBC_INC}  ${END}  ) ; do
+
+    ii=$(( ${ii} + 1 ))
+    ecflow_client --meter lbc_counter ${ii}
+
+    cd ${OUT}
+    step=$(printf "%02d" ${i})
+
+# GP 
+if [ -f fc_atm_pdg_${i}  ] ; then mv fc_atm_pdg_${i}  ICMUA${CNMEXP}+0000${step}
+   else echo "File fc_atm_pdg_${i} missing"   >> ${LOG}/stats.log ; fi
+
+if [ -f fc_sol_pdg_${i}  ] ; then mv fc_sol_pdg_${i}  ICMGG${CNMEXP}+0000${step}
+   else echo "File fc_sol_pdg_${i} missing"   >> ${LOG}/stats.log  ; fi
+
+if [ -f ana_sol_pdg_0000 ] ; then cat  ana_sol_pdg_0000 >> ICMGG${CNMEXP}+0000${step}
+   else "File ana_sol_pdg_0000 missing"       >> ${LOG}/stats.log  ; fi
+
+# SP 
+if [ -f fc_atm_spe_${i} ] ; then mv  fc_atm_spe_${i}  ICMSH${CNMEXP}+0000${step}
+   else "File fc_atm_spe_${i} missing"        >> ${LOG}/stats.log  ; fi
+
+if [ -f ana_oro_spe_0000 ] ; then cat ana_oro_spe_0000 >> ICMSH${CNMEXP}+0000${step}
+   else echo "File ana_oro_spe_0000 missing"  >> ${LOG}/stats.log  ; fi
+
+done
+
+# LAST CHECK 
+ for i in $(seq -f%01g ${START} ${LBC_INC} ${END} ); do
+    cd ${OUT}
+    step=$(printf "%02d" ${i})
+    CheckFile  ICMUA${CNMEXP}+0000${step}
+    CheckFile  ICMGG${CNMEXP}+0000${step}
+    CheckFile  ICMSH${CNMEXP}+0000${step}
+ done
+
+ fi
+@include <tail.h> 
+

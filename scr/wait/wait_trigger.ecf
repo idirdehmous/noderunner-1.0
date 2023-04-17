@@ -1,0 +1,11 @@
+@manual
+This is a dummy task. It's only function is to wait for a particular trigger (normally another suite that needs to run before this.)
+This task can be set to complete if you are sure the cycle is ready to run.
+@end
+@include <head.h>
+# this is a dummy task.
+# it needs to run, because we want it to complete
+# but just the fact of being complete is enough
+#ecflow_client --event START
+
+@include <tail.h>

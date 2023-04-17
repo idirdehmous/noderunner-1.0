@@ -1,0 +1,18 @@
+@manual
+This is a place holder script. Doesn't do anything unless you add it.
+@end
+
+#!/bin/bash
+@include <@HPC_HEADER@>
+@include <head.h>
+@include <settings.h>
+@include <@ENV_ALADIN@>
+module load ecflow/@ECF_VERSION@
+
+set -x
+umask 0022
+
+cd ${d_CYCLE}
+
+
+@include <tail.h>

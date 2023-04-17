@@ -1,0 +1,45 @@
+@include <head.h>
+@manual
+This task writes the initial conditions (analysis) to the operational archive.
+If this task fails: try to re-run.
+Failure probably means there is a connection problem OR lack of archiving space.
+
+If failure persists and no solution is available, set to complete and warn XXX.
+
+@end
+@include <settings.h>
+
+set -x
+umask 0022
+# save first guess and analysis to permanent storage
+# normally, the first_guess should have been archived in previous cycle
+cycledir=${ARCH_PATH}/CYCLE/${CNMEXP}/$YYYY/$MM/$DD/$RR
+d_FG=${d_CYCLE}/$YYYY/$MM/$DD/$RR
+
+# strictly speaking, the FG should have been saved in the previous cycle...
+[ -e ${d_GUESS}/analysis ] && archive_save ${d_GUESS}/analysis ${ARCH_HOST}:$cycledir
+[ -e ${d_FG}/first_guess ] && archive_save ${d_FG}/first_guess ${ARCH_HOST}:$cycledir
+
+if [[ $SURFACE == "surfex" ]] ; then
+  [ -e ${d_GUESS}/analysis_sfx ] && archive_save ${d_GUESS}/analysis_sfx ${ARCH_HOST}:$cycledir
+  [ -e ${d_FG}/first_guess_sfx ] && archive_save ${d_FG}/first_guess_sfx ${ARCH_HOST}:$cycledir
+fi
+
+# save the FG's for the next cycle(s)
+CDATE=$RUNDATE
+for i in $(seq 1 1 $FG_MAX) ; do
+  CDATE=`dateincr $CDATE +CYCLE_INC`
+  ymdr = `echo $CDATE | cut -c 1-4,5-6,7-8,9-10 --output-delimiter="/"` 
+  cycledir=${ARCH_PATH}/CYCLE/${ymdr}
+  d_FG=${d_CYCLE}/${ymdr}
+  [ -e ${d_FG}/first_guess ] && archive_save ${d_FG}/first_guess ${ARCH_HOST}:$cycledir
+
+  if [[ $SURFACE == "surfex" ]] ; then
+    [ -e ${d_FG}/first_guess_sfx ] && archive_save ${d_FG}/first_guess_sfx ${ARCH_HOST}:$cycledir
+  fi
+done
+
+# TODO: also archive observation ODB's?
+
+@include <tail.h>
+
