@@ -181,10 +181,7 @@ else
   # TMP ARCHIVE
   ARCH=/hpcperm/cvah/testruns
   mkdir -p  ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}
-
-  cp  -f  ${d_GUESS}/analysis             ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}/canari_analysis
-  cp  -f  ${d_GUESS}/first_guess          ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}/first_guess 
-   
+  
 
   # FIXME: if there is no 3dvar, shouldn't we call it analysis or so?
   # FIXME: is re-linking "analysis" OK?
@@ -196,7 +193,8 @@ else
   }
 fi
 
-
+cp  -f  ${d_GUESS}/first_guess_canari   ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}/canari_analysis
+cp  -f  ${d_GUESS}/first_guess          ${ARCH}/${SUITE}/${YYYY}/${MM}/${DD}/${RR}/first_guess 
 
 # try to avoid triggering next steps before the file is physically on the disc:
 sync
